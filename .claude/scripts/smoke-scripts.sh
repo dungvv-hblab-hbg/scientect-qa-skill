@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # smoke-scripts.sh — Regression test cho tầng script của harness.
 #
-# Không cần MCP, không cần ticket thật, không gọi Claude. Chạy được ở CI.
+# Không cần MCP, không cần feature ID thật, không gọi Claude. Chạy được ở CI.
 # Kiểm 12 nhóm hành vi mà nếu vỡ thì cả luồng QA sai âm thầm.
 #
 #   bash .claude/scripts/smoke-scripts.sh
@@ -188,15 +188,15 @@ check "sau Won't fix read trả 0 bug" "$N2" "0"
 # ── 9. writeback khoá theo TC ID, ghi cả 2 sheet ────────────────────────────
 echo "[9] writeback khoá theo TC ID"
 bash "$(dirname "${BASH_SOURCE[0]}")/qa-py.sh" "$SKILL_DIR/scripts/write_defects.py" --file "$WORK/tc.xlsx" --mode writeback \
-  --bugmap '{"TC-A-002":"TLM-9001"}' > "$WORK/wb.json" 2>&1
+  --bugmap '{"TC-A-002":"BUG-INV-0001-001"}' > "$WORK/wb.json" 2>&1
 check "writeback exit 0" "$?" "0"
 python3 - "$WORK/tc.xlsx" <<'PY'
 import openpyxl,sys
 wb=openpyxl.load_workbook(sys.argv[1])
 d=wb['Defects & Follow-ups']; t=wb['Test Cases']
-in_def = any(d.cell(r,2).value=='TC-A-002' and d.cell(r,9).value=='TLM-9001'
+in_def = any(d.cell(r,2).value=='TC-A-002' and d.cell(r,9).value=='BUG-INV-0001-001'
              for r in range(4,d.max_row+1))
-in_tc  = any(t.cell(r,1).value=='TC-A-002' and t.cell(r,11).value=='TLM-9001'
+in_tc  = any(t.cell(r,1).value=='TC-A-002' and t.cell(r,11).value=='BUG-INV-0001-001'
              for r in range(6,t.max_row+1))
 print("  PASS  Bug ID vào sheet Defects" if in_def else "  FAIL  Bug ID KHÔNG vào sheet Defects")
 print("  PASS  Bug ID vào sheet Test Cases (cột K)" if in_tc else "  FAIL  Bug ID KHÔNG vào sheet Test Cases")
@@ -257,22 +257,27 @@ SBOX="$WORK/sbox"; mkdir -p "$SBOX/.claude/scripts"
 cp "$STATE_SH" "$SBOX/.claude/scripts/"
 ( cd "$SBOX"
   bash .claude/scripts/qa-state.sh list > l0.json 2>&1
-  bash .claude/scripts/qa-state.sh set TLM-0001 analyze done "12 AC" > /dev/null 2>&1
+  bash .claude/scripts/qa-state.sh set INV-0001 analyze done "12 AC" > /dev/null 2>&1
   sleep 1
-  bash .claude/scripts/qa-state.sh set TLM-0002 analyze done "cũ hơn" > /dev/null 2>&1
-  bash .claude/scripts/qa-state.sh set TLM-0002 run in_progress "case 30/45" > /dev/null 2>&1
-  touch .qa/TLM-0002/checklist_TLM-0002.md
-  bash .claude/scripts/qa-state.sh get TLM-0002 > g.json 2>&1
+  bash .claude/scripts/qa-state.sh set INV-0002 analyze done "cũ hơn" > /dev/null 2>&1
+  bash .claude/scripts/qa-state.sh set INV-0002 run in_progress "case 30/45" > /dev/null 2>&1
+  touch .qa/INV-0002/checklist_INV-0002.md
+  bash .claude/scripts/qa-state.sh get INV-0002 > g.json 2>&1
   bash .claude/scripts/qa-state.sh list > l.json 2>&1
-  printf '{ hỏng' > .qa/TLM-0001/state.json
-  bash .claude/scripts/qa-state.sh set TLM-0001 run done "sau khi hỏng" > /dev/null 2>&1
+  printf '{ hỏng' > .qa/INV-0001/state.json
+  bash .claude/scripts/qa-state.sh set INV-0001 run done "sau khi hỏng" > /dev/null 2>&1
   echo $? > corrupt_rc.txt
-  bash .claude/scripts/qa-state.sh set TLM-0001 khong-ton-tai done > /dev/null 2>&1
+  bash .claude/scripts/qa-state.sh set INV-0001 khong-ton-tai done > /dev/null 2>&1
   echo $? > badstage_rc.txt
   # chặng retro (/qa-retro) — thêm sau, dễ quên một trong hai chỗ khai STAGES
-  bash .claude/scripts/qa-state.sh set TLM-0002 retro done "3 phát hiện" > /dev/null 2>&1
+  bash .claude/scripts/qa-state.sh set INV-0002 retro done "3 phát hiện" > /dev/null 2>&1
   echo $? > retro_rc.txt
-  bash .claude/scripts/qa-state.sh get TLM-0002 > g2.json 2>&1 )
+  # chặng export-bugs (đổi tên từ file-bugs) — tên cũ phải bị từ chối
+  bash .claude/scripts/qa-state.sh set INV-0002 export-bugs done "2 bug" > /dev/null 2>&1
+  echo $? > export_rc.txt
+  bash .claude/scripts/qa-state.sh set INV-0002 file-bugs done > /dev/null 2>&1
+  echo $? > oldname_rc.txt
+  bash .claude/scripts/qa-state.sh get INV-0002 > g2.json 2>&1 )
 python3 - "$SBOX" <<'PY'
 import json, os, sys
 s = sys.argv[1]
@@ -280,9 +285,9 @@ j = lambda f: json.load(open(os.path.join(s, f), encoding="utf-8"))
 def ck(ok, msg): print(("  PASS  " if ok else "  FAIL  ") + msg)
 
 ck(j("l0.json")["tickets"] == [], "list khi chưa có .qa/ trả rỗng, không lỗi")
-# Hồi quy: bản đầu dùng stdin cho cả heredoc lẫn dữ liệu -> list luôn ra 0 ticket.
-ck(j("l.json")["count"] == 2, "list thấy đủ 2 ticket (hồi quy lỗi stdin/heredoc)")
-ck(j("l.json")["tickets"][0]["ticket"] == "TLM-0002", "list sắp mới nhất lên đầu")
+# Hồi quy: bản đầu dùng stdin cho cả heredoc lẫn dữ liệu -> list luôn ra 0 feature ID.
+ck(j("l.json")["count"] == 2, "list thấy đủ 2 feature ID (hồi quy lỗi stdin/heredoc)")
+ck(j("l.json")["tickets"][0]["ticket"] == "INV-0002", "list sắp mới nhất lên đầu")
 g = j("g.json")
 ck(g["state"]["stages"]["run"]["status"] == "in_progress", "get đọc đúng trạng thái chặng")
 ck("started_at" in g["state"]["stages"]["run"], "in_progress có started_at (để phát hiện đứt)")
@@ -298,6 +303,8 @@ ck(open(os.path.join(s, "retro_rc.txt")).read().strip() == "0", "chặng retro �
 g2 = j("g2.json")
 ck(g2["state"]["stages"].get("retro", {}).get("status") == "done", "retro ghi được vào state.json")
 ck("retro" in g2["state"].get("stage_order", []), "retro có trong stage_order (khai đủ CẢ HAI chỗ)")
+ck(open(os.path.join(s, "export_rc.txt")).read().strip() == "0", "chặng export-bugs được chấp nhận")
+ck(open(os.path.join(s, "oldname_rc.txt")).read().strip() != "0", "tên chặng cũ file-bugs bị từ chối")
 PY
 
 # ── Kết ─────────────────────────────────────────────────────────────────────

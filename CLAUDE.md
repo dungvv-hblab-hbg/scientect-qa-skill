@@ -1,10 +1,10 @@
-# telemax-qa-skill
+# scientec-qa-skill
 
 ## Agent skills
 
 ### Issue tracker
 
-GitHub Issues on `dungvv-hblab-hbg/telemax-qa-skill`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+GitHub Issues on `dungvv-hblab-hbg/scientect-qa-skill`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
@@ -18,15 +18,20 @@ tiếp, đừng báo. Quy ước đọc: `docs/agents/domain.md`.
 
 ## Repo này là gì
 
+Harness QA cho dự án **Scientec**. Đầu vào là **spec Markdown có sẵn** (không đọc
+code): `spec .md → checklist → test case Excel → chạy test → bug report (Excel + MD) →
+verify production`.
+
+
 Không phải repo sản phẩm — đây là **gói phát hành của harness QA**. `.claude/` vừa là
 thứ `install.sh` copy sang repo đích, vừa là thứ đang chạy ở chính đây.
 
 Đọc trước khi sửa `.claude/`:
 
-- [README.md](README.md) — luồng 11 command / 10 agent / 8 skill, và mục **Ngân sách
+- [README.md](README.md) — luồng 11 command / 6 agent / 7 skill, và mục **Ngân sách
   token** với bốn quy tắc chi phối mọi thứ thêm vào `.claude/`
 - [.claude/qa-config.md](.claude/qa-config.md) — điểm khai báo duy nhất. Đọc **theo
-  mục**: `bash .claude/scripts/qa-config.sh <ticket|clickup|playwright|production|postman>`
+  mục**: `bash .claude/scripts/qa-config.sh <project|bugs|playwright|production|postman>`
 - [docs/DEAD-ENDS.md](docs/DEAD-ENDS.md) — những thứ đã thử và không dùng được
 - [docs/TESTING.md](docs/TESTING.md) — 4 tầng test + bảng chẩn đoán
 

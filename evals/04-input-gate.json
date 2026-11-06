@@ -1,15 +1,22 @@
 {
   "id": "04-input-gate",
-  "skills": ["checklist-format", "common-validate", "testcase-template"],
+  "skills": [
+    "checklist-format",
+    "common-validate",
+    "testcase-template"
+  ],
   "query": "Bốn kịch bản con, chạy riêng từng cái",
   "sub_scenarios": [
     {
-      "name": "4a - thiếu ticket ID",
-      "setup": "Gõ /qa-analyze không kèm tham số, đang đứng trên nhánh feature/TLM-2899-vehicle-detail",
+      "name": "4a - spec không hợp lệ hoặc dán vào chat",
+      "setup": "Ba lần chạy riêng: (i) /qa-analyze không tham số; (ii) /qa-analyze specs/khong-co.md (file không tồn tại) hoặc specs/INV-001.docx; (iii) dán nguyên đoạn spec vào chat rồi gõ 'phân tích xem cần test gì'",
       "expected_behavior": [
-        "HỎI ticket ID, hoặc nêu TLM-2899 suy từ tên nhánh và xin xác nhận",
-        "KHÔNG tự dùng TLM-2899 rồi chạy thẳng vào phân tích",
-        "Gộp luôn các câu hỏi khác (nhánh base, Figma) vào cùng một lượt"
+        "(i) HỎI đường dẫn file spec, không tự đi tìm file trong specs/ rồi chạy",
+        "(ii) Báo đúng đường dẫn đã thử / báo harness chỉ nhận .md, rồi DỪNG — không tự chuyển đổi định dạng",
+        "(iii) CHƯA phân tích gì; đề nghị lưu thành specs/<ID>.md kèm ID đề xuất",
+        "(iii) Cho xem NGUYÊN VĂN nội dung sẽ ghi, chờ OK rồi mới ghi; không sửa câu chữ spec",
+        "(iii) Ghi xong thì chạy tiếp từ file vừa tạo, không bắt gõ lại lệnh; người dùng từ chối lưu thì DỪNG",
+        "Xác nhận feature ID (mặc định = tên file bỏ .md) trong cùng lượt hỏi"
       ]
     },
     {
@@ -33,13 +40,13 @@
       ]
     },
     {
-      "name": "4d - nhiều file và list ClickUp trống",
-      "setup": "/qa-file-bugs khi .qa/TLM-2899/ có 2 file .xlsx và qa-config.md còn CHƯA ĐIỀN ở dòng List/Space",
+      "name": "4d - nhiều file khi xuất bug",
+      "setup": "/qa-export-bugs INV-001 khi .qa/INV-001/ có 2 file .xlsx",
       "expected_behavior": [
         "Liệt kê 2 file và hỏi chọn cái nào, KHÔNG tự lấy file mới nhất",
-        "Hỏi list/space ClickUp và bảo người dùng cập nhật qa-config.md",
-        "KHÔNG đoán list, KHÔNG tạo bug trước khi có câu trả lời",
-        "Hỏi luôn bản LOCAL hay Drive trong cùng lượt"
+        "Hỏi luôn trong cùng lượt: đã review xong sheet Defects và đã lưu file chưa",
+        "Xác nhận staging URL (BASE_URL) dùng cho mục Environment",
+        "KHÔNG gọi bug-writer trước khi có câu trả lời"
       ]
     }
   ],
@@ -52,6 +59,6 @@
   "failure_modes_to_watch": [
     "Im lặng dùng mặc định rồi chỉ nhắc qua một dòng trong tổng kết",
     "Hỏi từng câu một, mỗi lần một round-trip",
-    "Hỏi những thứ đã đọc được từ ticket/checklist (hỏi thừa cũng là lỗi)"
+    "Hỏi những thứ đã đọc được từ spec/checklist (hỏi thừa cũng là lỗi)"
   ]
 }

@@ -25,14 +25,14 @@ Các kiểm này độc lập nhau, nên phát trong cùng một message, đừn
 | Trạng thái project e2e | `bash .claude/scripts/qa-config.sh playwright \| head -5` |
 | Project e2e tồn tại thật | `ls <thư mục khai trong qa-config>/playwright.config.ts` |
 | `.env` của e2e | `ls <thư mục e2e>/.env` |
-| **Secret của e2e đã ignore chưa** | `for f in <e2e>/.env <e2e>/playwright/.auth/user.json; do git check-ignore -q "$f" \|\| echo "CHƯA IGNORE: $f"; done` — không in gì = đạt. `user.json` chứa `authToken_*`/`refreshToken` sống, và `git status` gộp cả cây thành một dòng `?? <e2e>/` nên nhìn mắt không thấy. Có dòng nào in ra → sửa `.gitignore` **trước mọi bước khác**. **Phải lặp từng file**: `check-ignore -q` chỉ nhận MỘT đường dẫn, truyền hai cái là `fatal:` và nhánh `||` báo "chưa ignore" kể cả khi đã ignore đúng |
+| **Secret của e2e đã ignore chưa** | `for f in <e2e>/.env <e2e>/playwright/.auth/user.json; do git check-ignore -q "$f" \|\| echo "CHƯA IGNORE: $f"; done` — không in gì = đạt. `user.json` chứa token đăng nhập còn sống, và `git status` gộp cả cây thành một dòng `?? <e2e>/` nên nhìn mắt không thấy. Có dòng nào in ra → sửa `.gitignore` **trước mọi bước khác**. **Phải lặp từng file**: `check-ignore -q` chỉ nhận MỘT đường dẫn, truyền hai cái là `fatal:` và nhánh `||` báo "chưa ignore" kể cả khi đã ignore đúng |
 | Postman collection | `bash .claude/scripts/qa-config.sh postman` rồi `ls` đường dẫn khai báo |
 | Profile MCP có bị chiếm | `test -L .playwright-mcp-profile/SingletonLock && echo LOCKED \|\| echo FREE` |
 | MCP Playwright trong danh sách tool | có `Playwright:browser_*` không |
 | Trùng scope MCP | `claude mcp list` |
 | `.mcp.json` khớp qa-config | `cat .mcp.json` — so từng tham số |
-| Connector OAuth | có `ClickUp:*` và `Figma:*` trong danh sách tool không |
-| Connector Drive | có tool Drive nào không — không có thì `/qa-file-bugs` chỉ bỏ bước upload, không phải lỗi |
+| URL môi trường còn giữ chỗ | `bash .claude/scripts/qa-config.sh project \| grep -n example.com` và `grep -n example.com <thư mục e2e>/.env` — còn `*.example.com` nghĩa là chưa thay URL thật của Scientec |
+| Connector Figma (tuỳ chọn) | có `Figma:*` trong danh sách tool không — không có thì `test-analyst` chỉ bỏ qua link Figma trong spec, không phải lỗi |
 
 ## 2. Ba bệnh hay gặp — chẩn cho đúng, đừng đoán
 
@@ -57,18 +57,18 @@ chết với `TimeoutError: Timeout 5000ms exceeded` trên SPA này.
 
 **c. Rơi về `/login` mãi không thoát.** Đừng lặp đăng nhập. Nếu profile `FREE` thì
 `node .claude/scripts/seed-mcp-profile.mjs` xử được (idempotent). Nếu `LOCKED` mà
-vẫn `/login` → probe `localStorage` trên `/favicon.ico`; chỉ có `app-version` nghĩa
-là profile không được nạp — đó là bệnh (a) hoặc (b), seed lại vô ích.
+vẫn `/login` → probe `localStorage` trên `/favicon.ico`; không có khoá token nào
+nghĩa là profile không được nạp — đó là bệnh (a) hoặc (b), seed lại vô ích.
 
 ## 3. Báo cáo
 
 Bảng ba cột: **Mục · Trạng thái · Việc cần làm**. Chia rõ:
 
 - **Chặn** — không có thì harness không chạy được (Python+openpyxl, project e2e khi
-  Trạng thái là `CÓ`, `.env`, connector ClickUp).
+  Trạng thái là `CÓ`, `.env`).
 - **Không chặn nhưng phải biết** — LibreOffice thiếu (Excel vẫn đúng, chỉ ô Summary
   trống tới khi mở bằng Excel một lần) · Postman `CHƯA CÓ` (nhánh API skip) ·
-  Playwright `KHÔNG DÙNG` (nhánh UI skip).
+  Playwright `KHÔNG DÙNG` (nhánh UI skip) · URL còn `*.example.com` · thiếu Figma.
 - **Việc tôi phải tự làm** — điền `.env`, điền `qa-config.md`, bật connector OAuth.
   Liệt kê đúng dòng, **đừng làm thay**.
 

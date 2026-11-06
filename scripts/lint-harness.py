@@ -129,8 +129,8 @@ try:
     args = json.load(open(".mcp.json", encoding="utf-8"))["mcpServers"]["playwright"]["args"]
     for banned in ("--isolated", "--storage-state"):
         if banned in args:
-            err(f".mcp.json: có {banned} — không nạp được session Telemax "
-                "(localStorage, 0 cookie). Xem qa-config.md.")
+            err(f".mcp.json: có {banned} — không nạp được session SPA "
+                "nằm trong localStorage (0 cookie). Xem qa-config.md.")
     for need in ("--user-data-dir", "--output-dir", "--timeout-action"):
         if need not in args:
             err(f".mcp.json: thiếu {need}")
@@ -145,10 +145,10 @@ except Exception as e:
 PW_RE = re.compile(r"(?:npx |\"|\s)playwright test(?![\w-])")
 for path in (glob.glob(".claude/**/*.md", recursive=True)
              + glob.glob(".claude/**/*.ts", recursive=True)
-             # spec thật + spec mẫu: file mẫu là thứ mọi ticket mới copy header từ đó
-             + [p for p in glob.glob("telemax-e2e/**/*.ts", recursive=True)
+             # spec thật + spec mẫu: file mẫu là thứ mọi tính năng mới copy header từ đó
+             + [p for p in glob.glob("scientec-e2e/**/*.ts", recursive=True)
                 if "node_modules" not in p]
-             + ["telemax-e2e/package.json", "docs/TESTING.md", "telemax-e2e/README.md"]):
+             + ["scientec-e2e/package.json", "docs/TESTING.md", "scientec-e2e/README.md"]):
     if not os.path.exists(path):
         continue
     for i, line in enumerate(open(path, encoding="utf-8"), 1):

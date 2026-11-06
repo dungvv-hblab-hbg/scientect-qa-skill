@@ -1,8 +1,8 @@
 {
-  "name": "telemax-e2e",
+  "name": "scientec-e2e",
   "version": "1.0.0",
   "private": true,
-  "description": "E2E tests cho Telemax fleet dashboard. Spec gom một file cho một ticket.",
+  "description": "E2E tests cho Scientec. Spec gom một file cho một tính năng (feature ID).",
   "scripts": {
     "test": "playwright test --project=chromium",
     "test:headed": "playwright test --project=chromium --headed",

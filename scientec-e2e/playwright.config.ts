@@ -8,14 +8,15 @@ export const STORAGE_STATE = path.join(__dirname, 'playwright/.auth/user.json');
 export const PROD_STORAGE_STATE = path.join(__dirname, 'playwright/.auth/prod.json');
 
 export default defineConfig({
-  // Spec của ticket nằm ở tests/TLM-XXXX.spec.ts (xem README).
+  // Spec của tính năng nằm ở tests/<ID>.spec.ts (xem README).
   testDir: './tests',
 
-  // TẮT CÓ CHỦ ĐÍCH. Dashboard là Blazor WASM: nhiều browser cùng boot nó sẽ khiến
-  // một số tab đứng ở trang trắng, và mọi test trong worker đó fail ở beforeEach với
-  // "Report Type not found" — triệu chứng giống hệt selector hỏng, rất dễ sửa nhầm.
-  // Đo trên TLM-3088: 24 fail khi song song, cùng bộ test pass với 1 worker.
-  // Các FILE vẫn chạy song song; chỉ test trong cùng một file bị tuần tự hoá.
+  // TẮT CÓ CHỦ ĐÍCH. SPA nặng: nhiều browser cùng boot app có thể khiến một số tab
+  // đứng ở trang trắng, và mọi test trong worker đó fail ở beforeEach — triệu chứng
+  // giống hệt selector hỏng, rất dễ sửa nhầm. (Đo trên một app SPA trước đây: 24 fail
+  // khi song song, cùng bộ test pass với 1 worker.) Bật lại chỉ khi đã đo được app
+  // Scientec chịu được. Các FILE vẫn chạy song song; chỉ test trong cùng một file bị
+  // tuần tự hoá.
   fullyParallel: false,
 
   forbidOnly: !!process.env.CI,
@@ -24,7 +25,7 @@ export default defineConfig({
   // undefined = số core / 2 (5 worker trên Mac 8 nhân) — quá nhiều cho SPA này.
   workers: process.env.CI ? 1 : 2,
 
-  // Staging đôi khi chậm; 30s mặc định hay đứt oan ở màn hình có bản đồ.
+  // Staging đôi khi chậm; 30s mặc định hay đứt oan ở màn hình nặng.
   timeout: 60_000,
   expect: { timeout: 10_000 },
 
@@ -34,7 +35,8 @@ export default defineConfig({
   ],
 
   use: {
-    baseURL: process.env.BASE_URL || 'https://dashboard-stage.telemax.com.au',
+    // TODO: thay URL thật của Scientec
+    baseURL: process.env.BASE_URL || 'https://scientec-staging.example.com',
 
     // Staging dùng chứng chỉ không hợp lệ với một số máy.
     ignoreHTTPSErrors: true,
@@ -56,7 +58,7 @@ export default defineConfig({
       testMatch: /auth\.setup\.ts/,
     },
 
-    // 2. Spec của ticket — session có sẵn, KHÔNG login trong spec.
+    // 2. Spec của tính năng — session có sẵn, KHÔNG login trong spec.
     {
       name: 'chromium',
       testDir: './tests',

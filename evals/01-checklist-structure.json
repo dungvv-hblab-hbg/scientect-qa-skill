@@ -1,28 +1,43 @@
 {
   "id": "01-checklist-structure",
-  "skills": ["checklist-format", "git-diff-scope"],
-  "query": "/qa-analyze TLM-2899",
+  "skills": [
+    "checklist-format"
+  ],
+  "query": "/qa-analyze specs/INV-001.md",
   "fixtures": {
-    "ticket": "Ticket có 7 AC (chưa đánh mã), 2 vai trò (Fleet Manager, Viewer), 4 comment, 1 link Figma",
-    "repo": "Đang ở nhánh feature/TLM-2899-vehicle-detail, có 6 commit; trong đó 2 file là Migrations/*.Designer.cs",
+    "spec": "specs/INV-001.md có 7 AC (chưa đánh mã), 2 vai trò (Accountant, Viewer), một mục ghi chú nghiệp vụ, 1 link Figma",
     "expected_scale": "khoảng 20 case"
   },
   "expected_behavior": [
-    "Ghi ra file .qa/TLM-2899/checklist_TLM-2899.md, không in checklist dài trong chat",
-    "Mục A đứng đầu, liệt kê từng frame Figma đã đọc và ghi rõ nguồn nào không truy cập được",
-    "Mọi dòng nội dung có nhãn nguồn: [AC-xx] / [Comment] / [Figma] / [Suy luận] / [Cần hỏi]",
+    "Xác nhận feature ID INV-001 (suy từ tên file) trước khi chạy, chép spec vào .qa/INV-001/spec.md",
+    "Ghi ra file .qa/INV-001/checklist_INV-001.md, không in checklist dài trong chat",
+    "Mục A đứng đầu, liệt kê file spec và từng frame Figma đã đọc, ghi rõ nguồn nào không truy cập được",
+    "Mọi dòng nội dung có nhãn nguồn: [AC-xx] / [Spec] / [Figma] / [Suy luận] / [Cần hỏi]",
     "Số thứ tự chạy liên tục toàn tài liệu, bắt đầu ở mục C, không reset theo mục",
     "Tự gán mã AC-01..AC-07 và mục E2 liệt kê đủ 7 AC, mỗi AC trỏ về phần tương ứng ở C",
     "Mục E (Role × quyền) xuất hiện vì tính năng có 2 vai trò",
-    "Mục G xuất hiện vì có git diff, và KHÔNG liệt kê file Migrations/*.Designer.cs như thay đổi cần test",
-    "Mục H xuất hiện vì ước lượng >15 case, mỗi ô ghi S/M/L chứ không ghi con số",
-    "Mục F: mỗi điểm mờ có đề xuất + độ tự tin; câu hỏi nghiệp vụ riêng của khách được gán Thấp, không gán Cao",
+    "KHÔNG có mục so sánh spec với code hay mục vùng ảnh hưởng từ thay đổi code — harness không đọc code",
+    "Mục G (kế hoạch test) xuất hiện vì ước lượng >15 case, mỗi ô ghi S/M/L chứ không ghi con số",
+    "Mục F: mỗi điểm mờ có đề xuất + độ tự tin; ràng buộc số không có căn cứ trong spec và câu hỏi nghiệp vụ riêng của khách được gán Thấp, không gán Cao",
     "File kết thúc bằng section '## Phản hồi review' để trống",
-    "Không viết test case, không tạo file Excel"
+    "Không viết test case, không tạo file Excel, không đọc mã nguồn của repo"
   ],
   "failure_modes_to_watch": [
     "Đánh số lại từ 1 ở mỗi mục -> phản hồi kiểu '#4 sai' trỏ vào nhiều chỗ",
     "Nhét bảng field hoặc trích message vào mục C thay vì D1/D2",
-    "Suy đoán impact ở mục G khi không có căn cứ trong diff"
+    "Đi đọc code trong repo để \"nâng\" độ tin của giả định lên Cao",
+    "Tự dùng tên khác làm ID mà không xin xác nhận"
+  ],
+  "sub_scenarios": [
+    {
+      "name": "1a - spec quá mỏng",
+      "setup": "specs/INV-003.md chỉ có tiêu đề và 2 dòng mô tả, không AC, không Figma",
+      "expected_behavior": [
+        "test-analyst báo SPEC_INSUFFICIENT, command DỪNG, không ghi checklist",
+        "Liệt kê từng chỗ thiếu thành câu hỏi cụ thể mang đi hỏi BA/khách được",
+        "Mời bổ sung vào file spec gốc rồi chạy lại /qa-analyze specs/INV-003.md",
+        "KHÔNG dựng checklist từ suy đoán, KHÔNG đi dò UI hay đọc code để đoán ngược spec"
+      ]
+    }
   ]
 }

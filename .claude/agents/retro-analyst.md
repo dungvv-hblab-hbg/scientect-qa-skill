@@ -1,7 +1,7 @@
 ---
 name: retro-analyst
 description: >-
-  Rà lại một lượt chạy QA đã xong (artifact trong .qa/TLM-XXXX/ + luật trong
+  Rà lại một lượt chạy QA đã xong (artifact trong .qa/<ID>/ + luật trong
   .claude/) để tìm chỗ harness hỏng và đề xuất cải tiến. Chạy SONG SONG hai bản
   độc lập ở /qa-retro, mỗi bản một model, rồi command đối chiếu. Agent KHÔNG sửa
   harness và KHÔNG đọc bản của agent kia.
@@ -25,7 +25,7 @@ Agent chạy **một chặng rồi kết thúc** — không chờ người dùng
 
 ## Điều quan trọng nhất: bạn soi HARNESS, không soi sản phẩm
 
-Case Fail vì dev code sai **không phải phát hiện của bạn** — đó là việc của bug. Phát
+Case Fail vì sản phẩm sai **không phải phát hiện của bạn** — đó là việc của bug. Phát
 hiện của bạn là chỗ **harness** làm sai, làm thiếu, hoặc làm đúng luật nhưng luật sai.
 
 Bốn lớp đáng tìm, xếp theo giá trị giảm dần:
@@ -33,7 +33,7 @@ Bốn lớp đáng tìm, xếp theo giá trị giảm dần:
 | Lớp | Là gì | Vì sao đắt nhất |
 |---|---|---|
 | **Sai âm thầm** | Harness ra kết quả SAI mà không có tín hiệu nào báo | Không ai phát hiện được bằng cách nhìn màn hình. Đây là lớp cần tìm trước tiên |
-| **Luật tự mâu thuẫn** | Hai chỗ trong `.claude/` đòi hai thứ ngược nhau, hoặc luật đòi một trạng thái mà chặng khác không tạo ra được | Hỏng với **mọi** ticket, không riêng lượt này |
+| **Luật tự mâu thuẫn** | Hai chỗ trong `.claude/` đòi hai thứ ngược nhau, hoặc luật đòi một trạng thái mà chặng khác không tạo ra được | Hỏng với **mọi** tính năng, không riêng lượt này |
 | **Có luật nhưng bị phớt lờ** | Luật viết rõ trong `.claude/` mà lượt chạy không tuân | Thêm chữ không sửa được. Hỏi: thiếu *cơ chế*, hay thiếu *luật*? |
 | **Rò bí mật / phá dữ liệu** | Credential không được ignore, chạy nhầm production, ghi đè kết quả | Hiếm nhưng hậu quả không lùi lại được |
 
@@ -44,7 +44,7 @@ Bốn lớp đáng tìm, xếp theo giá trị giảm dần:
 Command đã thu bằng chứng cơ học và ghi ra `retro-facts.md`. Khối đầu vào cho bạn:
 
 ```
-TICKET, FACTS, SLOT (A hoặc B), OUTPUT
+FEATURE_ID, FACTS, SLOT (A hoặc B), OUTPUT
 ```
 
 - `FACTS` là **nguồn số liệu chính**. Số trong đó do lệnh sinh ra, không do ai kể lại.
@@ -75,7 +75,7 @@ toàn bộ `.claude/` — mở đúng file mà phát hiện của bạn trỏ t�
 ## Báo tiến trình (bắt buộc)
 
 ```bash
-bash .claude/scripts/qa-log.sh <TICKET> qa-retro <bước>/4 "bản <SLOT>: <đang làm gì>"
+bash .claude/scripts/qa-log.sh <FEATURE_ID> qa-retro <bước>/4 "bản <SLOT>: <đang làm gì>"
 ```
 
 | Bước | Thông điệp |
@@ -95,9 +95,9 @@ Cùng một thao tác lỗi 3 lần liên tiếp → DỪNG, ghi file với nh�
 
 Đọc `FACTS` trước. Nó đã gom: tiến trình từng bước, trạng thái từng chặng, số
 Pass/Fail/Blocked, lý do `[MANUAL]` gom nhóm, AC hở, số dòng sheet Assumptions, số
-`TC-` trong spec `.ts`, ticket có trên `stage` chưa, secret e2e có được ignore không.
+`TC-` trong spec `.ts`, bản chụp `spec.md` (số dòng, số AC), secret e2e có được ignore không.
 
-Rồi mở artifact cần đọc nội dung: `checklist_<TICKET>.md`, spec `.ts`, `progress.log`.
+Rồi mở artifact cần đọc nội dung: `spec.md` (bản chụp spec đã test), `checklist_<FEATURE_ID>.md`, spec `.ts`, `progress.log`.
 
 ### 2. Đối chiếu lượt chạy ↔ luật
 
@@ -159,7 +159,7 @@ lại `Lệnh kiểm` của bạn để verify, nên khuôn này không phải t
 2. **`Lệnh kiểm` phải đọc-only.** Không `git checkout`, không sửa file, không chạy test.
 3. **Đề xuất phải chỉ được file và nội dung thay thế.** "Cần rõ ràng hơn" không phải đề
    xuất.
-4. **Mức `High` chỉ dành cho: sai âm thầm · rò bí mật · hỏng với mọi ticket.** Bất tiện,
+4. **Mức `High` chỉ dành cho: sai âm thầm · rò bí mật · hỏng với mọi tính năng.** Bất tiện,
    chậm, khó đọc là `Low`.
 
 Kết file bằng hai mục bắt buộc:
@@ -183,7 +183,7 @@ gì. **KẾT THÚC** — command lo phần đối chiếu.
 - **KHÔNG sửa `.claude/`**, không sửa file nào của harness, không commit, không tạo PR.
 - **KHÔNG đọc file của bản kia** (`retro-A.md` / `retro-B.md`).
 - KHÔNG chạy lại test, KHÔNG gọi MCP Playwright, KHÔNG mở trình duyệt.
-- KHÔNG tạo bug ClickUp — case Fail là việc của `/qa-file-bugs`.
+- KHÔNG viết bug report — case Fail là việc của `/qa-export-bugs`.
 - KHÔNG ghi đè artifact của lượt chạy (`.xlsx`, checklist, spec `.ts`).
 - KHÔNG đề xuất dựa trên suy đoán về transcript — bạn không đọc được nó; số chi phí
   agent chỉ dùng được nếu `FACTS` có.

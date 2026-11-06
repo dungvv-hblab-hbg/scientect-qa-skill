@@ -3,13 +3,13 @@ description: Đăng nhập vào profile MCP bằng script seed (mật khẩu kh�
 argument-hint: (không cần tham số · thêm "prod" nếu đăng nhập production)
 ---
 
-Đăng nhập vào dashboard để Phase 1 dùng lại session.
+Đăng nhập vào app Scientec (staging) để Phase 1 dùng lại session.
 
 Chạy khi: lần đầu cài harness, hoặc `/qa-run` báo đang ở trang login (session hết hạn).
 
 ## Phân vai
 
-- **Email + mật khẩu**: chạy script, script tự đọc `telemax-e2e/.env`.
+- **Email + mật khẩu**: chạy script, script tự đọc `scientec-e2e/.env`.
   **KHÔNG điền form bằng MCP** — `browser_type({text: "<mật khẩu>"})` để lộ mật khẩu
   nguyên văn trong transcript. Script chạy trong tiến trình Node riêng nên mật khẩu
   không bao giờ đi qua context.
@@ -70,7 +70,7 @@ profile. Không thấy `PROFILE_SEEDED` thì đừng chạy `/qa-run` — MCP s�
 **3b. Session cho phần chạy bằng code — CHỈ hỏi khi 2FA đang bật**
 
 Harness có **hai session tách biệt**: session của MCP (vừa đăng nhập xong, dùng cho
-Phase 1) và session của project e2e (`telemax-e2e/playwright/.auth/user.json`, dùng khi
+Phase 1) và session của project e2e (`scientec-e2e/playwright/.auth/user.json`, dùng khi
 chạy `npx playwright test --project=chromium`).
 
 **2FA đang TẮT (mặc định hiện nay) → ĐỪNG HỎI GÌ.** Project `chromium` khai
@@ -87,7 +87,7 @@ Chỉ nói một dòng cho tôi biết: *"session code sẽ tự tạo ở lần
 trong tay, nên làm luôn là hợp lý:
 
 ```bash
-cd telemax-e2e && npm run auth:headed
+cd scientec-e2e && npm run auth:headed
 ```
 
 Nói trước là sẽ phải **nhập mã 2FA lần nữa** (hai session, hai lần đăng nhập). Tôi từ
@@ -105,7 +105,7 @@ thì mất.
 **Để cửa sổ trình duyệt mở nguyên** — đừng đóng sau khi đăng nhập xong. `/qa-run` sẽ
 dùng lại chính cửa sổ đó, khỏi phải khởi động lại và khỏi chờ SPA tải nguội lần nữa.
 
-Rồi mời tôi chạy `/qa-run TLM-XXXX`.
+Rồi mời tôi chạy `/qa-run <ID>`.
 
 ## Ranh giới
 

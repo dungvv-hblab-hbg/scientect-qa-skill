@@ -44,7 +44,7 @@ nên rất dễ lọt.
 ## RESULT BY SECTION — dò động, không chèn/xoá dòng
 
 Bảng RESULT BY SECTION trong Summary (4 dòng mẫu) dùng tên section **cứng** của
-ticket mẫu. Mỗi ticket có section khác nhau nên script ghi đè tên section thật vào
+tính năng mẫu. Mỗi tính năng có section khác nhau nên script ghi đè tên section thật vào
 cột A các dòng này.
 
 Vị trí bảng được **dò động** qua header "Section" ở cột A và đếm số slot có sẵn
@@ -59,11 +59,11 @@ lỗi âm thầm rất khó thấy.
 chạy được là chụp công thức của mọi dòng phía dưới ở dạng **template hoá theo số dòng**,
 **gỡ hết merged cell** trong vùng bị dịch (LEGEND có `B33:J33`… và ghi vào merged cell sẽ
 ném `MergedCell object attribute 'value' is read-only`), dựng lại toàn vùng từ dòng 21,
-rồi merge lại ở vị trí đã dịch. Kiểm bằng cách build một ticket vượt số slot cũ và đối
+rồi merge lại ở vị trí đã dịch. Kiểm bằng cách build một tính năng vượt số slot cũ và đối
 chiếu RESULT BY SECTION cộng đúng Total.
 
 Cách an toàn khi chỉ dùng bảng có sẵn: chỉ ghi đè trong khung slot có sẵn; section thừa thì xoá sạch cả
-dòng (tên + công thức); ticket có nhiều section hơn số slot thì script **thoát với
+dòng (tên + công thức); tính năng có nhiều section hơn số slot thì script **thoát với
 exit code 2** kèm `PROBLEMS`, không phải in warning rồi đi tiếp. Section rơi ngoài
 bảng làm RESULT BY SECTION không cộng khớp Total mà file vẫn mở bình thường.
 Xử lý: gộp section, hoặc thêm dòng tay rồi tự dịch tham chiếu các bảng bên dưới.
@@ -71,12 +71,12 @@ Xử lý: gộp section, hoặc thêm dòng tay rồi tự dịch tham chiếu c
 ## Làm sạch các sheet phụ
 
 "Tạo file mới từ template" chỉ sạch nếu template asset đã được làm sạch **mọi**
-sheet mang nội dung ticket-cụ-thể, không chỉ 2 sheet chính:
+sheet mang nội dung riêng-của-tính-năng, không chỉ 2 sheet chính:
 
 - **Test Cases / Test Cases_VN** — xoá data mẫu; header row 1–2 do script cập nhật
-  theo ticket (đừng để sót dòng source cũ như `CU-1234`).
+  theo tính năng (đừng để sót dòng source cũ của file mẫu).
 - **Assumptions & Questions** — template rỗng phần data, giữ header. Giả định của
-  ticket do agent đổ vào.
+  tính năng do agent đổ vào.
 - **Traceability** — giữ header, data do `build.py` đổ từ `acceptance_criteria`.
 - **Common Validate** — GIỮ NGUYÊN. Đây là bản tra cứu tái dùng cho mọi màn hình,
   test case trỏ tới nó.

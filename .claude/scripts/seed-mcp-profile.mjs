@@ -9,8 +9,9 @@
  * và tham số tool call hiện NGUYÊN VĂN trong lịch sử hội thoại. Script này chạy trong
  * tiến trình Node riêng, đọc thẳng `.env`, nên mật khẩu không bao giờ rời khỏi tiến trình.
  *
- * Vì sao không dùng `--isolated --storage-state`: session của Telemax nằm 100% trong
- * localStorage, 0 cookie — và MCP không nạp được storage state đó. Đã thử, không dùng
+ * Vì sao không dùng `--isolated --storage-state`: SPA giữ session 100% trong
+ * localStorage (0 cookie) thì MCP không nạp được storage state đó. Chưa rõ app Scientec
+ * giữ session ở đâu, nên đi đường profile — chạy được cho cả hai kiểu. Đã thử, không dùng
  * được. Xem `.claude/qa-config.md`.
  *
  * THỨ TỰ QUAN TRỌNG: chạy script này TRƯỚC khi gọi bất kỳ tool MCP nào trong session.
@@ -32,7 +33,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');          // .claude/scripts/ -> gốc repo
 
 // Thư mục project e2e KHÔNG cố định: `/qa-setup` (skill e2e-scaffold) để người dùng
-// chọn, và mặc định đề xuất là `e2e/`. Hardcode 'telemax-e2e' ở đây thì script chết
+// chọn, và mặc định đề xuất là `e2e/`. Hardcode 'scientec-e2e' ở đây thì script chết
 // ngay ở repo đầu tiên chọn tên khác. Thứ tự: env -> dò playwright.config -> mặc định.
 function findE2E() {
   if (process.env.QA_E2E_DIR) return path.resolve(ROOT, process.env.QA_E2E_DIR);
@@ -44,12 +45,12 @@ function findE2E() {
       }
     }
   }
-  return path.join(ROOT, 'telemax-e2e');
+  return path.join(ROOT, 'scientec-e2e');
 }
 const E2E = findE2E();
-const E2E_NAME = path.relative(ROOT, E2E) || 'telemax-e2e';
+const E2E_NAME = path.relative(ROOT, E2E) || 'scientec-e2e';
 // Tiền tố biến env cũng do e2e-scaffold đặt theo tên app (VD ACME_USER).
-const PFX = process.env.QA_ENV_PREFIX || 'TELEMAX';
+const PFX = process.env.QA_ENV_PREFIX || 'SCIENTEC';
 const PROFILE = path.join(ROOT, '.playwright-mcp-profile');
 const ENV_FILE = path.join(E2E, '.env');
 
@@ -85,8 +86,9 @@ for (const line of fs.readFileSync(ENV_FILE, 'utf8').split('\n')) {
 }
 
 // Selector form đăng nhập — app khác thì form khác. Khai ở `<project e2e>/.env`
-// (hoặc biến môi trường cùng tên); mặc định là form Telemax để repo này không phải
-// khai gì. Tiền tố chọn cách tìm: placeholder: (mặc định) · label: · testid: ·
+// (hoặc biến môi trường cùng tên); mặc định là form chung (placeholder `Enter your email`/
+// `Enter your password`, nút `Login`) — CHỈ LÀ GIỮ CHỖ cho tới khi biết form đăng nhập của Scientec
+// (TODO: chỉnh lại theo form thật). Tiền tố chọn cách tìm: placeholder: (mặc định) · label: · testid: ·
 // text: · css: · role:<vai>/<tên>.
 function pick(key, fallback) {
   return process.env[key] || env[key] || fallback;
@@ -121,7 +123,7 @@ function loc(page, spec) {
 const prod = process.argv.includes('--prod');
 const base = prod
   ? env.PROD_BASE_URL
-  : (env.BASE_URL || 'https://dashboard-stage.telemax.com.au');
+  : (env.BASE_URL || 'https://scientec-staging.example.com'); // TODO: thay URL thật của Scientec
 const userKey = prod ? `${PFX}_PROD_USER` : `${PFX}_USER`;
 const passKey = prod ? `${PFX}_PROD_PASS` : `${PFX}_PASS`;
 const user = env[userKey];

@@ -1,9 +1,9 @@
 ---
-description: Chạy test UI (Playwright) + API (newman) theo scope ticket, ghi kết quả và điền sheet Defects
-argument-hint: TLM-XXXX
+description: Chạy test UI (Playwright) + API (newman) theo test case của tính năng, ghi kết quả và điền sheet Defects
+argument-hint: <ID>
 ---
 
-Chạy test cho ticket **$1**.
+Chạy test cho tính năng **$1** (feature ID). Spec gốc: `.qa/$1/spec.md` (đọc khi cần đối chiếu AC).
 
 ## Cổng đầu vào — làm TRƯỚC khi gọi agent
 
@@ -12,22 +12,21 @@ nhưng mặc định vẫn là phán đoán, nêu ra chờ tôi gật · **Tự 
 bạn, làm luôn nhưng liệt kê trong tổng kết. Gộp mọi câu hỏi vào MỘT lượt, mỗi câu nêu
 rõ mặc định đề xuất. Không bao giờ hỏi mật khẩu/token qua chat.
 
+**Xác nhận — tính năng đã lên staging chưa?** `/qa-run` chạy trên môi trường
+**staging** (`BASE_URL` — `bash .claude/scripts/qa-config.sh project`). Harness không
+có quyền đọc code hay pipeline deploy, nên **không tự kiểm được** — hỏi tôi một câu:
+
+> "Tính năng $1 đã được deploy lên staging (`<BASE_URL>`) chưa? Mặc định: đã deploy."
+
+Tôi chưa trả lời "đã deploy" → **DỪNG**. Chạy test khi tính năng chưa lên là **đo bản
+cũ rồi ghi kết quả cho tính năng mới** — test vẫn chạy, vẫn ra số, nên không có gì báo
+là sai. Đã deploy nhưng chưa chắc build xong → hỏi tôi, đừng tự cho là xong.
+
 **Chặn:**
-1. **Code của ticket đã lên dashboard-stage chưa?** dashboard-stage build từ nhánh
-   **`stage`** (không phải `dev`, không phải `master` — `bash .claude/scripts/qa-config.sh ticket`).
-   Kiểm nhanh rồi hỏi tôi xác nhận:
-   ```bash
-   git fetch origin stage --quiet
-   git log --oneline origin/stage --grep="$1" | head
-   ```
-   Không thấy commit của ticket trên `stage` → **DỪNG**, hỏi tôi đã merge và build
-   chưa. Chạy test khi code chưa lên là **đo bản cũ rồi ghi kết quả cho ticket mới** —
-   test vẫn chạy, vẫn ra số, nên không có gì báo là sai.
-   Đã merge nhưng chưa chắc đã build xong → hỏi tôi, đừng tự cho là xong.
-2. **File nào** — liệt kê các `.xlsx` trong `.qa/$1/` và hỏi tôi chọn. Có đúng một
+1. **File nào** — liệt kê các `.xlsx` trong `.qa/$1/` và hỏi tôi chọn. Có đúng một
    file thì nêu tên để tôi xác nhận. **Đừng tự lấy file mới nhất.**
 
-   Chọn xong, đọc mọi số liệu cần cho cổng 3, 4 và điều kiện AC bằng **một lệnh** —
+   Chọn xong, đọc mọi số liệu cần cho cổng 2, 3 và điều kiện AC bằng **một lệnh** —
    đừng viết openpyxl tạm:
 
    ```bash
@@ -39,7 +38,7 @@ rõ mặc định đề xuất. Không bao giờ hỏi mật khẩu/token qua ch
    Đọc-only, không ghi gì, không tạo `.bak`. Trả về: phân bố Round 1/2, số case đã
    có kết quả, `suggest_round` kèm lý do, `data_req` gom theo điều kiện, `manual`,
    `ac_missing`, số dòng Defects.
-3. **Ghi kết quả vào Round 1 hay Round 2** — dùng `suggest_round` từ lệnh trên. Nó
+2. **Ghi kết quả vào Round 1 hay Round 2** — dùng `suggest_round` từ lệnh trên. Nó
    phân **ba** trạng thái, không phải hai:
 
    | Round 1 đang là | Đề xuất |
@@ -51,8 +50,8 @@ rõ mặc định đề xuất. Không bao giờ hỏi mật khẩu/token qua ch
    Nêu đề xuất **kèm số liệu thật từ JSON** (VD "Round 1 có 41 Blocked + 4 Not Run,
    Defects rỗng → đề xuất ghi đè Round 1") rồi **chờ tôi xác nhận**. Ghi nhầm round
    làm `write_defects.py` đọc sai round và `% Executed` sai theo.
-4. **Test data đặc biệt** — lấy `data_req` từ JSON, đã **gom sẵn theo điều kiện**:
-   "13 case cần xe có Idle/Trip data, 4 case cần account date format = null". Báo
+3. **Test data đặc biệt** — lấy `data_req` từ JSON, đã **gom sẵn theo điều kiện**:
+   "13 case cần invoice ở trạng thái Overdue, 4 case cần account chưa cấu hình tiền tệ". Báo
    trước khi chạy, hỏi tôi cung cấp hay thống nhất đánh `[MANUAL]`.
    **Đừng bịa dữ liệu, đừng tự cho là có.**
 
@@ -61,7 +60,7 @@ rõ mặc định đề xuất. Không bao giờ hỏi mật khẩu/token qua ch
 
    `ac_missing` không rỗng → nêu ra ngay ở lượt hỏi này: chạy test trên bộ case còn
    hở AC là đo sai độ phủ.
-5. **MCP Playwright: có, và đúng MỘT bản** — kiểm danh sách tool (`Playwright:browser_*`)
+4. **MCP Playwright: có, và đúng MỘT bản** — kiểm danh sách tool (`Playwright:browser_*`)
    rồi `claude mcp list`.
    - Nhiều hơn một entry `playwright` → **DỪNG**, bảo tôi chạy `/qa-doctor` để chẩn
      (đọc-only, không cài gì) rồi làm theo lệnh nó đề xuất.
@@ -76,7 +75,7 @@ rõ mặc định đề xuất. Không bao giờ hỏi mật khẩu/token qua ch
 
    Ghi kết quả vào `MCP_OK` của khối đầu vào. Agent không kiểm lại.
 
-6. **Session đăng nhập — seed TRƯỚC, đừng probe bằng MCP**
+5. **Session đăng nhập — seed TRƯỚC, đừng probe bằng MCP**
 
    Thứ tự này quan trọng: script seed cần lock trên thư mục profile, mà **gọi một
    tool MCP là MCP mở browser và chiếm lock**. Probe trước rồi mới phát hiện hết
@@ -111,8 +110,8 @@ rõ mặc định đề xuất. Không bao giờ hỏi mật khẩu/token qua ch
      ```
      | Kết quả | Nghĩa | Xử |
      |---|---|---|
-     | có `authToken_*` | session còn sống | đi tiếp |
-     | rỗng / chỉ `app-version` | hết session **hoặc** profile không được nạp | **DỪNG**, bảo tôi thoát Claude Code rồi chạy lại `/qa-run $1` — lần sau sẽ vào nhánh `FREE` và tự seed |
+     | có khoá token đăng nhập (`*token*` / `*auth*` / `*session*` — TODO: chốt tên khoá thật của app Scientec) | session còn sống | đi tiếp |
+     | rỗng / chỉ khoá cấu hình của app | hết session **hoặc** profile không được nạp | **DỪNG**, bảo tôi thoát Claude Code rồi chạy lại `/qa-run $1` — lần sau sẽ vào nhánh `FREE` và tự seed |
 
      Bỏ bước probe này là rơi vào vòng lặp: đăng nhập → vẫn `/login` → xoá
      `user.json` → ép `npm run auth` → vẫn `/login`.
@@ -120,9 +119,9 @@ rõ mặc định đề xuất. Không bao giờ hỏi mật khẩu/token qua ch
    **KHÔNG điền form login bằng MCP** trong mọi trường hợp — `browser_type` để lộ mật
    khẩu nguyên văn trong transcript. Muốn làm riêng bước này thì chạy `/qa-login`.
 
-7. **Môi trường Playwright** — thiếu `.env` của project e2e → dừng, hướng dẫn tôi tự
+6. **Môi trường Playwright** — thiếu `.env` của project e2e → dừng, hướng dẫn tôi tự
    cấu hình. **Đừng hỏi mật khẩu hay token qua chat.**
-8. **Postman** — đọc Trạng thái: `bash .claude/scripts/qa-config.sh postman`. `CHƯA CÓ` thì **skip nhánh
+7. **Postman** — đọc Trạng thái: `bash .claude/scripts/qa-config.sh postman`. `CHƯA CÓ` thì **skip nhánh
    API và nói rõ sẽ skip bao nhiêu case**, đừng dừng cả chặng và đừng hỏi lại mỗi lần.
 
 **Xác nhận:** chạy toàn bộ case hay một phần (mặc định toàn bộ); có export `.ts`
@@ -136,7 +135,7 @@ số liệu rồi hỏi:
 
 Mặc định đề xuất **tiếp tục** (`RESUME: có`). Chạy lại từ đầu một bộ 45 case là vài
 chục phút, và kết quả 30 case cũ vẫn nằm nguyên trong file. Chỉ chạy lại cả bộ khi
-tôi nói rõ — VD dev vừa deploy bản mới nên kết quả cũ không còn đúng.
+tôi nói rõ — VD dev vừa deploy bản mới lên staging nên kết quả cũ không còn đúng.
 
 Trước khi gọi agent, nói với tôi một dòng: muốn theo dõi tiến trình thì mở terminal
 thứ hai và chạy `tail -f .qa/$1/progress.log`.
@@ -144,15 +143,15 @@ thứ hai và chạy `tail -f .qa/$1/progress.log`.
 Gọi agent `test-runner` với:
 
 ```
-TICKET: $1
+FEATURE_ID: $1
 TESTCASE_FILE: (file tôi đã chọn)
 ROUND: (1 hoặc 2 — tôi đã xác nhận)
 SCOPE: (toàn bộ / danh sách TC ID)
 RESUME: (có = bỏ qua case đã có kết quả ở ROUND / không = chạy lại tất cả)
 EXPORT_TS: (có / không)
 TEST_DATA: (dữ liệu tôi cung cấp, hoặc "đánh [MANUAL]" cho case nào)
-MCP_OK: (đã kiểm ở cổng 5: có/không, mấy bản, scope nào)
-SESSION_OK: (đã seed/xác nhận ở cổng 6 lúc <giờ>, hoặc "?" nếu chưa kiểm được)
+MCP_OK: (đã kiểm ở cổng 4: có/không, mấy bản, scope nào)
+SESSION_OK: (đã seed/xác nhận ở cổng 5 lúc <giờ>, hoặc "?" nếu chưa kiểm được)
 ```
 
 `MCP_OK` và `SESSION_OK` có giá trị → agent **dùng thẳng, không kiểm lại**. Ghi `?`
@@ -184,13 +183,13 @@ Sau khi agent kết thúc, báo bằng tiếng Việt:
 4. Case nào bị `write_defects.py` skip và vì sao
 5. Khối tổng kết đầu vào: tôi đã xác nhận gì, agent tự quyết gì (phân nhánh
    UI/API/Manual), còn treo gì
-6. Bước tiếp theo: mở **file LOCAL** (không phải bản trên Drive), review sheet
+6. Bước tiếp theo: mở file `.xlsx` trong `.qa/$1/`, review sheet
    **Defects & Follow-ups** — sửa Actual nếu sai, đặt **Fix Status = "Won't fix"**
-   cho case không muốn tạo bug (**đừng xoá dòng**), rồi chạy `/qa-file-bugs $1`
+   cho case không muốn tạo bug (**đừng xoá dòng**), rồi chạy `/qa-export-bugs $1`
 
 **Để cửa sổ trình duyệt mở nguyên khi xong** — nó tự tắt khi tôi thoát Claude Code.
 
-Đừng tạo bug, đừng upload Drive.
+Đừng tạo bug report — đó là việc của `/qa-export-bugs`.
 
 ## Ghi trạng thái (bắt buộc — để `/qa-status` và resume dùng được)
 

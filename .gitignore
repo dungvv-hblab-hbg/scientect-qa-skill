@@ -12,9 +12,9 @@ __pycache__/
 .qa/
 .playwright-mcp-profile/
 .playwright-mcp-output/
-telemax-e2e/.env
-telemax-e2e/playwright/.auth/
-telemax-e2e/test-results/
-telemax-e2e/playwright-report/
+scientec-e2e/.env
+scientec-e2e/playwright/.auth/
+scientec-e2e/test-results/
+scientec-e2e/playwright-report/
 
 .DS_Store

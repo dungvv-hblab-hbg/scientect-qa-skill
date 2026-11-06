@@ -299,7 +299,7 @@ def widen_summary(ws_summary, last_row):
 
 
 def update_summary_header(ws_summary, cover):
-    ws_summary["A2"] = (f"{cover.get('project', 'Fleet Management')}   ·   {cover['module']}"
+    ws_summary["A2"] = (f"{cover.get('project', 'Scientec')}   ·   {cover['module']}"
                         f"   ·   Version {cover['version']}   ·   "
                         f'All figures are live formulas over the "Test Cases" sheet.')
 
@@ -318,14 +318,14 @@ def update_vn_header(ws_vn, cover):
 
 
 def update_cover(ws_cover, cover):
-    ws_cover["A2"] = f"{cover.get('project', 'Fleet Management')} — {cover['module']}"
+    ws_cover["A2"] = f"{cover.get('project', 'Scientec')} — {cover['module']}"
     ws_cover["B5"] = cover["module"]
     ws_cover["B6"] = cover["version"]
     ws_cover["B7"] = cover["source"]
     ws_cover["E5"] = cover["create_date"]
 
     # RECORD OF CHANGE: APPEND dòng mới, KHÔNG ghi đè — ghi đè thì làm v2 cho cùng
-    # ticket là mất lịch sử thay đổi.
+    # tính năng là mất lịch sử thay đổi.
     r = 11
     while True:
         v = ws_cover.cell(r, 1).value
@@ -483,7 +483,7 @@ def main():
 
     problems = []
     if sec["overflow"]:
-        problems.append(f"RESULT BY SECTION chỉ có {sec.get('capacity')} slot nhưng ticket có "
+        problems.append(f"RESULT BY SECTION chỉ có {sec.get('capacity')} slot nhưng tính năng có "
                         f"{sec['written'] + len(sec['overflow'])} section. Section KHÔNG lên bảng: "
                         f"{sec['overflow']}. Summary sẽ không cộng khớp Total — phải thêm dòng tay "
                         f"(và dịch tham chiếu các bảng bên dưới) hoặc gộp section.")

@@ -3,7 +3,7 @@
 # Comment luôn nằm trên dòng riêng.
 
 # ── Đầu ra của harness QA ──────────────────────────────────────────────
-# checklist + file test case sinh theo ticket
+# checklist + file test case + bug report sinh theo feature ID
 .qa/
 # backup do write_defects.py tạo
 *.xlsx.bak
@@ -14,13 +14,13 @@
 # nơi MCP ghi screenshot; agent chuyển vào .qa/ rồi dọn
 .playwright-mcp-output/
 
-# ── Playwright (telemax-e2e/) ──────────────────────────────────────────
+# ── Playwright (scientec-e2e/)──────────────────────────────────────────
 .env
 .env.*
 !.env.example
-# storageState sau khi login — chứa authToken/refreshToken SỐNG.
+# storageState sau khi login — chứa token đăng nhập SỐNG.
 # Cần CẢ HAI dòng: pattern có `/` ở giữa bị neo vào gốc repo, nên `playwright/.auth/`
-# KHÔNG khớp `telemax-e2e/playwright/.auth/`. Dòng `**/` mới là dòng thật sự chặn.
+# KHÔNG khớp `scientec-e2e/playwright/.auth/`. Dòng `**/` mới là dòng thật sự chặn.
 playwright/.auth/
 **/playwright/.auth/
 storageState.json
@@ -46,7 +46,7 @@ result.json
 node_modules/
 # CHỈ lockfile của project e2e — `package-lock.json` trần sẽ ignore cả lockfile
 # của chính app trong repo đích (và mọi package con của monorepo).
-telemax-e2e/package-lock.json
+scientec-e2e/package-lock.json
 e2e/package-lock.json
 
 # ── Python ─────────────────────────────────────────────────────────────

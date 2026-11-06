@@ -1,6 +1,6 @@
 # Check chuẩn — endpoint API
 
-Áp cho mọi endpoint có trong scope ticket. Cụ thể hoá status code và message theo
+Áp cho mọi endpoint có trong scope tính năng. Cụ thể hoá status code và message theo
 hợp đồng API thật, không dùng câu chung chung.
 
 ## Mục lục

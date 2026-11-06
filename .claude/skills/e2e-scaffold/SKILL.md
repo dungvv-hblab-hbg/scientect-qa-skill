@@ -137,8 +137,8 @@ Thứ bị rò không phải session cookie: app dùng token trong **localStorag
 có `cookies: []` và chứa **access token + refresh token**. Refresh token tái tạo được
 phiên sau khi access token hết hạn — rò nó nặng hơn rò một session cookie.
 
-*(Đo trên repo Telemax2: `git check-ignore` trả `NOT IGNORED` cho
-`telemax-e2e/playwright/.auth/user.json`, file chứa `authToken_83` + `refreshToken`,
+*(Đo trên một repo thật trước đây: `git check-ignore` trả `NOT IGNORED` cho
+`<project e2e>/playwright/.auth/user.json`, file chứa access token + refresh token,
 `cookies: 0`.)*
 
 Sinh xong **phải verify bằng lệnh**, đừng tin pattern:
@@ -159,8 +159,8 @@ Cách viết hai file `auth.*.setup.ts` — phần dễ sai nhất — ở
 
 `.claude/scripts/seed-mcp-profile.mjs` **không phải sửa code** — nó tự dò thư mục e2e
 qua `playwright.config.*`, lấy tiền tố biến ở `QA_ENV_PREFIX`, và đọc selector form
-đăng nhập từ `LOGIN_*` trong `.env`. Nhưng mặc định của `LOGIN_*` là form Telemax, nên
-**app khác thì phải khai `LOGIN_*` trong `.env.example`** cùng lúc viết `auth.setup.ts`
+đăng nhập từ `LOGIN_*` trong `.env`. Nhưng mặc định của `LOGIN_*` chỉ là form chung giữ chỗ
+(chưa phải form Scientec), nên **app nào cũng phải khai `LOGIN_*` trong `.env.example`** cùng lúc viết `auth.setup.ts`
 — cùng một bộ selector, hai chỗ dùng. Bỏ sót thì script treo 15s rồi báo "nút submit
 vẫn disabled".
 
@@ -175,7 +175,7 @@ case UI ghi `Blocked` + Note `[MANUAL] chưa dựng project e2e — chạy tay`,
 chạy tiếp, và tổng kết phải nêu rõ bao nhiêu case bị bỏ. Marker `[MANUAL]` khiến
 `write_defects.py` không đẻ bug rác cho chúng.
 
-Đây là trạng thái **hợp lệ**, không phải lỗi. Nhiều ticket không đụng UI, và một repo
+Đây là trạng thái **hợp lệ**, không phải lỗi. Nhiều tính năng không đụng UI, và một repo
 chỉ có API thì nhánh UI vốn không có việc gì làm.
 
 ## Bước 3 — Chốt lại vào qa-config
@@ -184,7 +184,7 @@ Dù đi nhánh nào, mục Playwright phải phản ánh sự thật:
 
 ```
 | Trạng thái | CÓ / CHƯA CÓ / KHÔNG DÙNG |
-| Thư mục project | <đường dẫn thật, VD e2e/ hoặc telemax-e2e/> |
+| Thư mục project | <đường dẫn thật, VD e2e/ hoặc scientec-e2e/> |
 ```
 
 `Trạng thái` là `CÓ` mà thư mục không tồn tại → đó là **sai cấu hình**, không phải

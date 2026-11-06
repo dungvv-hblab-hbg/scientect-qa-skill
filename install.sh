@@ -4,11 +4,11 @@
 #   ./install.sh /đường/dẫn/repo-dich
 #   ./install.sh /đường/dẫn/repo-dich --dry-run     # chỉ in ra sẽ làm gì
 #   ./install.sh /đường/dẫn/repo-dich --force       # ghi đè .claude/ đang có
-#   ./install.sh /đường/dẫn/repo-dich --with-e2e    # copy luôn telemax-e2e/ (xem dưới)
+#   ./install.sh /đường/dẫn/repo-dich --with-e2e    # copy luôn scientec-e2e/ (xem dưới)
 #
 # Copy: .claude/  ·  .mcp.json
 # KHÔNG copy project e2e (mặc định) — /qa-setup dò repo đích rồi hỏi. --with-e2e để
-# copy nguyên bản Telemax, chỉ đúng khi repo đích là app Telemax cùng form login.
+# copy nguyên scientec-e2e/ — URL + form login trong đó còn là giữ chỗ (TODO).
 # Append: gitignore.snippet vào .gitignore của repo đích (bỏ qua nếu đã có)
 #
 # KHÔNG copy: evals/, docs/, CHANGELOG.md — tài liệu, không cần trong repo đích.
@@ -78,24 +78,24 @@ fi
 #   B. chưa có, là app web    -> scaffold theo app thật của repo đó
 #   C. không phải app web     -> bỏ nhánh UI, qa-config ghi Trạng thái KHÔNG DÙNG
 #
-# --with-e2e để copy nguyên bản Telemax: chỉ đúng khi repo đích là một app Telemax
-# khác, cùng form đăng nhập.
+# --with-e2e để copy nguyên scientec-e2e/: hợp khi repo đích là repo test của Scientec.
+# URL và selector form đăng nhập trong đó còn là GIỮ CHỖ — phải sửa trước npm run check.
 if [ "$WITH_E2E" = 1 ]; then
-  if [ -d "$TARGET/telemax-e2e" ]; then
-    say "telemax-e2e/ ĐÃ CÓ — không đụng."
+  if [ -d "$TARGET/scientec-e2e" ]; then
+    say "scientec-e2e/ ĐÃ CÓ — không đụng."
   else
-    run "cp -R '$SRC/telemax-e2e' '$TARGET/telemax-e2e'"
-    run "rm -rf '$TARGET/telemax-e2e/node_modules' '$TARGET/telemax-e2e/.env'"
-    say "telemax-e2e/ -> đã copy (--with-e2e)"
-    say "  Chỉ đúng nếu repo đích là app Telemax cùng form đăng nhập."
+    run "cp -R '$SRC/scientec-e2e' '$TARGET/scientec-e2e'"
+    run "rm -rf '$TARGET/scientec-e2e/node_modules' '$TARGET/scientec-e2e/.env'"
+    say "scientec-e2e/ -> đã copy (--with-e2e)"
+    say "  URL + selector form đăng nhập còn là giữ chỗ (TODO) — sửa .env trước npm run check."
   fi
 else
   say "project e2e -> BỎ QUA (mặc định). /qa-setup sẽ dò repo rồi hỏi bạn."
-  say "  Repo đích là app Telemax khác, cùng form login? Chạy lại với --with-e2e."
+  say "  Muốn dùng sẵn khung scientec-e2e/? Chạy lại với --with-e2e."
 fi
 
 # ── qa-config: Trạng thái Playwright phải khớp thứ VỪA copy ──────────────
-# Bản trong repo harness ghi `CÓ` vì telemax-e2e/ tồn tại ở đó. Copy nguyên sang một
+# Bản trong repo harness ghi `CÓ` vì scientec-e2e/ tồn tại ở đó. Copy nguyên sang một
 # repo KHÔNG được copy e2e là để lại `CÓ` + thư mục không tồn tại — mà chính file đó
 # quy định trạng thái ấy là "SAI CẤU HÌNH: DỪNG, báo". Người mới cài đâm vào hàng rào
 # này ngay bước đầu, trước khi /qa-setup kịp dựng gì.
@@ -110,7 +110,7 @@ if [ "$WITH_E2E" != 1 ]; then
     say "qa-config.md -> Trạng thái Playwright = CHƯA CÓ (chưa có project e2e)"
   fi
 else
-  say "qa-config.md -> giữ Trạng thái Playwright = CÓ (đã copy telemax-e2e/)"
+  say "qa-config.md -> giữ Trạng thái Playwright = CÓ (đã copy scientec-e2e/)"
 fi
 
 # ── .gitignore ───────────────────────────────────────────────────────────
@@ -136,7 +136,8 @@ echo
 echo "  2. Sau khi /qa-setup dựng xong project e2e: cp <project>/.env.example <project>/.env"
 echo "     rồi điền URL + tài khoản test."
 echo
-echo "  3. Điền .claude/qa-config.md — list/space ClickUp chứa bug (còn CHƯA ĐIỀN)."
+echo "  3. Rà .claude/qa-config.md — thay URL giữ chỗ (*.example.com) bằng URL thật của"
+echo "     Scientec, điền các dòng còn CHƯA ĐIỀN, đặt spec vào specs/<ID>.md."
 echo
 echo "  4. Kiểm nhanh:  bash .claude/scripts/smoke-scripts.sh"
 echo

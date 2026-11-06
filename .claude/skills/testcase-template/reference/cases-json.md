@@ -26,10 +26,10 @@
 
 | Field | Bắt buộc | Ghi chú |
 |---|---|---|
-| `project` | không | Mặc định `"Fleet Management"` |
-| `module` | **có** | Tên màn hình/tính năng, VD `"Vehicle Detail Page"` |
+| `project` | không | Mặc định `"Scientec"` |
+| `module` | **có** | Tên màn hình/tính năng, VD `"Invoice List & Detail"` |
 | `version` | **có** | VD `"1.0"` |
-| `source` | **có** | Mã ClickUp + link Figma, VD `"ClickUp TLM-2899 · Figma: /file/xxx"`. Chưa có ticket → `"Dán tay trong chat, chưa có ticket — 2026-08-30"`, đừng bịa mã |
+| `source` | **có** | Feature ID + đường dẫn spec (+ link Figma), VD `"INV-001 · specs/INV-001.md · Figma: /file/xxx"`. Đừng bịa link |
 | `create_date` | **có** | Định dạng `YYYY-MM-DD` |
 | `change_desc` | không | Dòng đầu của RECORD OF CHANGE |
 
@@ -43,8 +43,8 @@ Lấy từ **mục E2 (Bảng AC)** của checklist đã review. Tuỳ chọn, n
 
 ```json
 "acceptance_criteria": [
-  { "id": "AC-01", "text": "Mở trang chi tiết từ danh sách Devices" },
-  { "id": "AC-02", "text": "Tiêu đề hiển thị tên xe, không phải biển số" }
+  { "id": "AC-01", "text": "Danh sách hoá đơn, mới nhất trên cùng" },
+  { "id": "AC-02", "text": "Lọc theo khách hàng và ngày phát hành" }
 ]
 ```
 
@@ -60,12 +60,12 @@ Result thì phải có **một dòng** ở đây.
 ```json
 "assumptions": [
   {
-    "ref": "#72",
-    "topic": "Report Period format",
-    "gap": "Ticket offers two formats, records no decision",
-    "assumption": "12-hour with AM/PM",
+    "ref": "#19",
+    "topic": "Issue Date format",
+    "gap": "Spec AC and Figma show two formats, no decision recorded",
+    "assumption": "DD/MM/YYYY",
     "question": "Which format is the pass criterion?",
-    "answer": "12-hour with AM/PM — confirmed by reviewer",
+    "answer": "DD/MM/YYYY — confirmed by reviewer",
     "date_closed": "2026-09-14"
   }
 ]
@@ -73,7 +73,7 @@ Result thì phải có **một dòng** ở đây.
 
 | Field | Bắt buộc | Ghi chú |
 |---|---|---|
-| `ref` | **có** | Số mục trong checklist, giữ nguyên dấu `#`, VD `"#72"` |
+| `ref` | **có** | Số mục trong checklist, giữ nguyên dấu `#`, VD `"#19"` |
 | `topic` | **có** | Chủ đề ngắn |
 | `gap` | không | Spec hở chỗ nào |
 | `assumption` | **có** | Giả định đang dùng làm căn cứ cho Expected Result |
@@ -153,13 +153,13 @@ hoặc số section vượt số slot của bảng RESULT BY SECTION.
 ```json
 {
   "cover": {
-    "module": "Vehicle Detail Page",
+    "module": "Invoice List & Detail",
     "version": "1.0",
-    "source": "ClickUp TLM-2899",
+    "source": "INV-001 · specs/INV-001.md",
     "create_date": "2026-08-30"
   },
   "acceptance_criteria": [
-    { "id": "AC-01", "text": "Mở trang chi tiết từ danh sách Devices" }
+    { "id": "AC-03", "text": "Mở chi tiết hoá đơn từ danh sách" }
   ],
   "sections": [
     {
@@ -170,17 +170,17 @@ hoặc số section vượt số slot của bảng RESULT BY SECTION.
           "section": "Page & Entry",
           "type": "Functional",
           "priority": "High",
-          "acs": ["AC-01"],
-          "title_en": "Open vehicle detail from Devices list",
-          "title_vn": "Mở trang chi tiết xe từ danh sách Devices",
-          "precond_en": "Logged in, at least one device exists",
-          "precond_vn": "Đã đăng nhập, có ít nhất một thiết bị",
-          "steps_en": "1. Open Devices list\n2. Click the first device row",
-          "steps_vn": "1. Mở danh sách Devices\n2. Bấm dòng thiết bị đầu tiên",
-          "data_en": "Device: DEV-001",
-          "data_vn": "Thiết bị: DEV-001",
-          "expected_en": "1. Detail page opens\n2. Heading shows the vehicle name",
-          "expected_vn": "1. Trang chi tiết mở ra\n2. Tiêu đề hiển thị tên xe",
+          "acs": ["AC-03"],
+          "title_en": "Open invoice detail from Invoices list",
+          "title_vn": "Mở chi tiết hoá đơn từ danh sách Invoices",
+          "precond_en": "Logged in, at least one invoice exists",
+          "precond_vn": "Đã đăng nhập, có ít nhất một hoá đơn",
+          "steps_en": "1. Open the Invoices menu\n2. Click the first invoice row",
+          "steps_vn": "1. Mở menu Invoices\n2. Bấm dòng hoá đơn đầu tiên",
+          "data_en": "Invoice: INV-2026-0001",
+          "data_vn": "Hoá đơn: INV-2026-0001",
+          "expected_en": "1. Detail page opens\n2. Heading shows the invoice number",
+          "expected_vn": "1. Trang chi tiết mở ra\n2. Tiêu đề hiển thị số hoá đơn",
           "note_en": "",
           "note_vn": ""
         }

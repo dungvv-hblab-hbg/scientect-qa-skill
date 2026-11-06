@@ -1,12 +1,12 @@
 ---
-description: Rà lại lượt chạy vừa xong của một ticket, hai agent review độc lập, đối chiếu rồi xuất báo cáo cải tiến harness
-argument-hint: TLM-XXXX
+description: Rà lại lượt chạy vừa xong của một tính năng, hai agent review độc lập, đối chiếu rồi xuất báo cáo cải tiến harness
+argument-hint: <ID>
 ---
 
-Rà lại lượt chạy QA của ticket **$1** và đề xuất cải tiến **harness**.
+Rà lại lượt chạy QA của tính năng **$1** và đề xuất cải tiến **harness**.
 
-Chặng này soi **harness**, không soi sản phẩm. Case Fail vì dev code sai là việc của
-`/qa-file-bugs`. Ở đây chỉ tìm chỗ harness làm sai, làm thiếu, hoặc làm đúng luật mà
+Chặng này soi **harness**, không soi sản phẩm. Case Fail vì sản phẩm sai là việc của
+`/qa-export-bugs`. Ở đây chỉ tìm chỗ harness làm sai, làm thiếu, hoặc làm đúng luật mà
 luật sai.
 
 ## Cổng đầu vào — làm TRƯỚC khi gọi agent
@@ -54,9 +54,9 @@ bash .claude/scripts/qa-py.sh \
   .claude/skills/testcase-template/scripts/write_defects.py \
   --file .qa/$1/<file.xlsx> --mode status
 
-# Ticket đã lên stage chưa, có chuỗi revert không
-git fetch origin stage --quiet
-git log --oneline --first-parent origin/stage --grep="$1"
+# Bản chụp spec mà lượt chạy đã dùng — có không, dài bao nhiêu, mấy AC
+test -f .qa/$1/spec.md && wc -l < .qa/$1/spec.md && \
+  grep -cE "AC-?[0-9]+" .qa/$1/spec.md
 
 # Secret của e2e có được ignore không (rò credential là mức High mặc định).
 # PHẢI lặp từng file: `git check-ignore -q` chỉ nhận MỘT đường dẫn — truyền hai cái là
@@ -72,8 +72,9 @@ test -f "$E2E/tests/$1.spec.ts" && \
   grep -oE "TC-[A-Z0-9]+-[0-9]{3}" "$E2E/tests/$1.spec.ts" | sort -u | wc -l && \
   grep -c "@prod-safe" "$E2E/tests/$1.spec.ts"
 
-# Harness có đổi gì kể từ lượt chạy không (đổi giữa chừng làm sai lệch kết luận)
-git log --oneline -5 -- .claude/
+# Harness có đổi gì kể từ lượt chạy không (đổi giữa chừng làm sai lệch kết luận).
+# Chỉ git của chính harness — không phải nhánh build của sản phẩm.
+git log --oneline -5 -- .claude/ 2>/dev/null
 ```
 
 Thêm một lượt đọc Excel cho các số mà `--mode status` không trả — gộp **một** lệnh,
@@ -94,7 +95,7 @@ print('Traceability MISSING:', sum(1 for r in range(4, t.max_row+1) if t.cell(r,
 Ghi `retro-facts.md` gồm: tiến trình (nêu rõ **bước thiếu**, **thứ tự đảo**, **khoảng
 lặng > 5 phút**), trạng thái + note từng chặng, số P/F/B, lý do `[MANUAL]` **gom theo
 nhóm kèm số lượng**, AC hở, số dòng Assumptions, số liệu spec `.ts`, kết quả kiểm
-secret, ticket trên `stage` + có revert không.
+secret, bản chụp `spec.md` có không + số dòng/số AC.
 
 **Chỉ ghi số đọc được. Không diễn giải, không kết luận** — diễn giải là việc của agent,
 và facts phải trung lập với cả hai bản.
@@ -116,7 +117,7 @@ nhau** — cùng một file agent, hai model. Chúng không phụ thuộc nhau.
 
 `retro-analyst` (bản A, `model: opus`):
 ```
-TICKET: $1
+FEATURE_ID: $1
 FACTS: .qa/$1/retro-facts.md
 SLOT: A
 OUTPUT: .qa/$1/retro-A.md
@@ -124,7 +125,7 @@ OUTPUT: .qa/$1/retro-A.md
 
 `retro-analyst` (bản B, `model: fable`):
 ```
-TICKET: $1
+FEATURE_ID: $1
 FACTS: .qa/$1/retro-facts.md
 SLOT: B
 OUTPUT: .qa/$1/retro-B.md
@@ -164,7 +165,7 @@ lệnh như mọi phát hiện khác. Cột "Hai bản" chỉ để tôi biết 
 Ghi **`.qa/$1/retro-<YYYY-MM-DD>.md`**:
 
 ```markdown
-# Retro — <TICKET>
+# Retro — <ID>
 
 **Ngày:** YYYY-MM-DD · **Lượt chạy:** <ngày chạy test, lấy từ state.json>
 **Model:** bản A <model> · bản B <model>
@@ -210,7 +211,7 @@ lượt làm việc riêng, có review riêng. Báo cáo đã xếp hạng sẵn
 - KHÔNG sửa harness, KHÔNG commit, KHÔNG tạo PR.
 - KHÔNG chạy lại test, KHÔNG gọi MCP Playwright.
 - KHÔNG ghi đè artifact của lượt chạy (`.xlsx`, checklist, spec `.ts`).
-- KHÔNG tạo bug ClickUp.
+- KHÔNG viết bug report — đó là `/qa-export-bugs`.
 
 ## Ghi trạng thái (bắt buộc — để `/qa-status` và resume dùng được)
 

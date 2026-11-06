@@ -1,9 +1,9 @@
 ---
 description: Từ checklist đã review, sinh bộ test case Excel (kèm sheet Traceability)
-argument-hint: TLM-XXXX
+argument-hint: <ID>
 ---
 
-Sinh bộ test case cho ticket **$1**.
+Sinh bộ test case cho tính năng **$1**.
 
 ## Cổng đầu vào — làm TRƯỚC khi gọi agent
 
@@ -18,9 +18,9 @@ rõ mặc định đề xuất. Không bao giờ hỏi mật khẩu/token qua ch
 1. Checklist còn phản hồi chưa xử lý, hoặc mục F còn câu hỏi độ tin **Thấp** chưa
    có trả lời → dừng, liệt kê đúng những câu đó, hỏi tôi.
 2. Có field nào cần ràng buộc thật (maxlength, min/max, định dạng) mà **không có ở
-   D1**, và ở F cũng **không có giả định độ tin Cao KÈM căn cứ đọc được** (schema
-   DB, code validator, field tương tự — nêu rõ chỗ đọc) → hỏi tôi. Nhãn "Cao" trơn,
-   không dẫn được căn cứ, **không tính**. **Tuyệt đối không lấy 255 hay bất kỳ số
+   D1**, và ở F cũng **không có câu trả lời đã chốt hoặc giả định độ tin Cao KÈM căn
+   cứ đọc được trong spec/Figma** (nêu rõ chỗ đọc) → hỏi tôi. Nhãn "Cao" trơn, không
+   dẫn được căn cứ, **không tính**. **Tuyệt đối không lấy 255 hay bất kỳ số
    "chuẩn" nào làm thật.**
 3. Có Expected Result nào cần message mà **không có trong D2** → hỏi, đừng tự viết
    câu chung chung.
@@ -31,7 +31,7 @@ rõ mặc định đề xuất. Không bao giờ hỏi mật khẩu/token qua ch
 |---|---|
 | `cover.module` | tên tính năng ở mục B của checklist |
 | `cover.version` | `1.0`, hoặc tăng nếu `.qa/$1/` đã có file |
-| `cover.source` | mã ClickUp + link Figma ở mục A |
+| `cover.source` | feature ID + đường dẫn spec (+ link Figma nếu có) ở mục A, VD `INV-001 · specs/INV-001.md` |
 | `cover.create_date` | hôm nay |
 | Tên file output | `TCs_<Module>_v<ver>.xlsx` |
 
@@ -55,7 +55,7 @@ thứ hai và chạy `tail -f .qa/$1/progress.log`.
 Gọi agent `testcase-writer` với:
 
 ```
-TICKET: $1
+FEATURE_ID: $1
 CHECKLIST: .qa/$1/checklist_$1.md
 OUTPUT_DIR: .qa/$1/
 COVER: (module / version / source / create_date tôi đã xác nhận)

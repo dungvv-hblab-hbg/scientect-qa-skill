@@ -1,121 +1,132 @@
 {
-  "_comment": "Mẫu tham chiếu cho build.py. Cấu trúc đầy đủ ở docstring đầu build.py.",
+  "_comment": "Mẫu tham chiếu cho build.py. Cấu trúc đầy đủ ở reference/cases-json.md.",
   "cover": {
-    "project": "Fleet Management",
-    "module": "Vehicle Detail Page",
+    "project": "Scientec",
+    "module": "Invoice List & Detail",
     "version": "1.0",
-    "source": "ClickUp TLM-2899 · Figma: /file/xxx/VehiclePage",
+    "source": "INV-001 · specs/INV-001.md · Figma: /file/xxx/InvoicePages",
     "create_date": "2026-08-23",
     "change_desc": "Khởi tạo bộ test case theo spec AC-01..AC-03"
   },
   "acceptance_criteria": [
     {
       "id": "AC-01",
-      "text": "Mở trang chi tiết từ danh sách Devices, tiêu đề là tên xe"
+      "text": "Mở menu Invoices hiện danh sách hoá đơn, mới nhất trên cùng"
     },
     {
       "id": "AC-02",
-      "text": "Trang cuộn đơn, không có tab bar"
+      "text": "Trang chi tiết hiển thị tổng tiền = dòng hàng + thuế, 2 chữ số thập phân"
     },
     {
       "id": "AC-03",
-      "text": "Tên xe bắt buộc, tối đa 100 ký tự"
+      "text": "Ghi chú bắt buộc khi lưu, tối đa 500 ký tự"
     }
   ],
   "sections": [
     {
-      "divider": "A. Page & Entry",
+      "divider": "A. Invoice List",
       "cases": [
         {
           "id": "TC-A-001",
-          "section": "Page & Entry",
+          "section": "Invoice List",
           "type": "Functional",
           "priority": "High",
           "acs": [
             "AC-01"
           ],
-          "title_en": "Open detail page from Devices list (AC-01)",
-          "title_vn": "Mở trang chi tiết từ danh sách Devices (AC-01)",
-          "precond_en": "Logged in; at least one vehicle exists",
-          "precond_vn": "Đã đăng nhập; có ít nhất một xe",
-          "steps_en": "1. Open the Devices menu\n2. Click the row for vehicle 51A-12345",
-          "steps_vn": "1. Mở menu Devices\n2. Bấm vào dòng của xe 51A-12345",
-          "data_en": "rego = 51A-12345 · name = Truck 07 — North Depot",
-          "data_vn": "biển số = 51A-12345 · tên = Truck 07 — North Depot",
-          "expected_en": "1. Detail page of the selected vehicle opens\n2. page heading shows the vehicle NAME, not the rego",
-          "expected_vn": "1. Mở đúng trang chi tiết của xe vừa chọn\n2. Tiêu đề trang hiển thị TÊN xe, không phải biển số",
-          "note_en": "",
-          "note_vn": ""
+          "title_en": "Invoices list shows newest invoice first (AC-01)",
+          "title_vn": "Danh sách Invoices hiện hoá đơn mới nhất trên cùng (AC-01)",
+          "precond_en": "Logged in as Accountant; at least two invoices with different issue dates exist",
+          "precond_vn": "Đã đăng nhập bằng Accountant; có ít nhất hai hoá đơn khác ngày phát hành",
+          "steps_en": "1. Open the Invoices menu\n2. Look at the first row of the list",
+          "steps_vn": "1. Mở menu Invoices\n2. Nhìn dòng đầu tiên của danh sách",
+          "data_en": "INV-2026-0001 (issued 2026-08-01) · INV-2026-0002 (issued 2026-08-15)",
+          "data_vn": "INV-2026-0001 (phát hành 2026-08-01) · INV-2026-0002 (phát hành 2026-08-15)",
+          "expected_en": "1. Invoices list opens\n2. INV-2026-0002 is on the first row",
+          "expected_vn": "1. Danh sách hoá đơn mở ra\n2. INV-2026-0002 nằm ở dòng đầu tiên",
+          "note_en": "[DATA-REQ] two invoices with different issue dates",
+          "note_vn": "[DATA-REQ] hai hoá đơn khác ngày phát hành"
         },
         {
           "id": "TC-A-002",
-          "section": "Page & Entry",
-          "type": "UI",
-          "priority": "Medium",
+          "section": "Invoice List",
+          "type": "Business rule",
+          "priority": "High",
           "acs": [
             "AC-02"
           ],
-          "title_en": "Single scrolling page, no tab bar (AC-02)",
-          "title_vn": "Trang cuộn đơn, không có tab bar (AC-02)",
-          "precond_en": "On the vehicle detail page",
-          "precond_vn": "Đang ở trang chi tiết xe",
-          "steps_en": "1. Look at the top of the detail page",
-          "steps_vn": "1. Nhìn phần đầu của trang chi tiết",
-          "data_en": "-",
-          "data_vn": "-",
-          "expected_en": "1. No tab bar is rendered\n2. Cards are stacked in the designed order",
-          "expected_vn": "1. Trang không có thanh tab\n2. Các thẻ thông tin xếp đúng thứ tự trong thiết kế",
-          "note_en": "",
-          "note_vn": ""
+          "title_en": "Invoice total = line items + tax, 2 decimals (AC-02)",
+          "title_vn": "Tổng tiền hoá đơn = dòng hàng + thuế, 2 chữ số thập phân (AC-02)",
+          "precond_en": "Invoice INV-2026-0002 has line items 100.10 and 200.25, tax 10%",
+          "precond_vn": "Hoá đơn INV-2026-0002 có dòng hàng 100.10 và 200.25, thuế 10%",
+          "steps_en": "1. Open the Invoices menu\n2. Click the row INV-2026-0002\n3. Look at the \"Total\" field",
+          "steps_vn": "1. Mở menu Invoices\n2. Bấm dòng INV-2026-0002\n3. Nhìn ô \"Total\"",
+          "data_en": "line items = 100.10 · 200.25 · tax = 10%",
+          "data_vn": "dòng hàng = 100.10 · 200.25 · thuế = 10%",
+          "expected_en": "1. Detail page of INV-2026-0002 opens\n2. \"Total\" shows 330.39",
+          "expected_vn": "1. Mở đúng trang chi tiết INV-2026-0002\n2. Ô \"Total\" hiển thị 330.39",
+          "note_en": "Rounding at the last step, see checklist D3 #14",
+          "note_vn": "Làm tròn ở bước cuối, xem D3 #14 của checklist"
         }
       ]
     },
     {
-      "divider": "B. Vehicle name field",
+      "divider": "B. Invoice Note",
       "cases": [
         {
           "id": "TC-B-001",
-          "section": "Vehicle name field",
+          "section": "Invoice Note",
           "type": "Validation",
           "priority": "High",
           "acs": [
             "AC-03"
           ],
-          "title_en": "Empty vehicle name shows the required message (AC-03)",
-          "title_vn": "Bỏ trống tên xe hiện message bắt buộc (AC-03)",
-          "precond_en": "Edit mode open on the vehicle detail page",
-          "precond_vn": "Đang mở chế độ Edit ở trang chi tiết xe",
-          "steps_en": "1. Clear the Vehicle name field\n2. Click Save",
-          "steps_vn": "1. Xoá trắng ô \"Vehicle Name\"\n2. Bấm nút \"Save\"",
-          "data_en": "vehicle name = (empty)",
-          "data_vn": "tên xe = (rỗng)",
-          "expected_en": "1. Record is not saved\n2. Message shown verbatim: \"Vehicle name is required.\"",
-          "expected_vn": "1. Hệ thống không lưu\n2. Hiện đúng câu: \"Vehicle name is required.\"",
-          "note_en": "Message from checklist D2 #17",
-          "note_vn": "Message lấy từ D2 #17 của checklist"
+          "title_en": "Empty note shows the required message (AC-03)",
+          "title_vn": "Bỏ trống ghi chú hiện message bắt buộc (AC-03)",
+          "precond_en": "On the detail page of a Draft invoice",
+          "precond_vn": "Đang ở trang chi tiết của một hoá đơn Draft",
+          "steps_en": "1. Clear the \"Note\" field\n2. Click \"Save\"",
+          "steps_vn": "1. Xoá trắng ô \"Note\"\n2. Bấm nút \"Save\"",
+          "data_en": "note = (empty)",
+          "data_vn": "ghi chú = (rỗng)",
+          "expected_en": "1. Note is not saved\n2. Message shown verbatim: \"Note is required.\"",
+          "expected_vn": "1. Hệ thống không lưu\n2. Hiện đúng câu: \"Note is required.\"",
+          "note_en": "Message from checklist D2 #12",
+          "note_vn": "Message lấy từ D2 #12 của checklist"
         },
         {
           "id": "TC-B-002",
-          "section": "Vehicle name field",
+          "section": "Invoice Note",
           "type": "Boundary",
           "priority": "Medium",
           "acs": [
             "AC-03"
           ],
-          "title_en": "Vehicle name at 100 / 101 characters (AC-03)",
-          "title_vn": "Tên xe ở mốc 100 / 101 ký tự (AC-03)",
-          "precond_en": "Edit mode open",
-          "precond_vn": "Đang mở chế độ Edit",
-          "steps_en": "1. Enter exactly 100 characters, Save\n2. Enter 101 characters, Save",
-          "steps_vn": "1. Nhập đúng 100 ký tự rồi bấm \"Save\"\n2. Nhập 101 ký tự rồi bấm \"Save\"",
-          "data_en": "100 chars · 101 chars",
-          "data_vn": "100 ký tự · 101 ký tự",
-          "expected_en": "1. 100 chars saves successfully\n2. 101 chars is rejected with \"Vehicle name must be 100 characters or fewer.\"",
-          "expected_vn": "1. 100 ký tự lưu thành công\n2. 101 ký tự bị chặn kèm \"Vehicle name must be 100 characters or fewer.\"",
-          "note_en": "Boundary case is UI-observable -> Playwright branch, NOT manual",
-          "note_vn": "Case Boundary quan sát được trên UI -> nhánh Playwright, KHÔNG phải manual"
+          "title_en": "Note at 500 / 501 characters (AC-03)",
+          "title_vn": "Ghi chú ở mốc 500 / 501 ký tự (AC-03)",
+          "precond_en": "On the detail page of a Draft invoice",
+          "precond_vn": "Đang ở trang chi tiết của một hoá đơn Draft",
+          "steps_en": "1. Enter exactly 500 characters, click \"Save\"\n2. Enter 501 characters, click \"Save\"",
+          "steps_vn": "1. Nhập đúng 500 ký tự rồi bấm \"Save\"\n2. Nhập 501 ký tự rồi bấm \"Save\"",
+          "data_en": "500 chars · 501 chars",
+          "data_vn": "500 ký tự · 501 ký tự",
+          "expected_en": "1. 500 chars saves successfully\n2. 501 chars is rejected with \"Note must be 500 characters or fewer.\"",
+          "expected_vn": "1. 500 ký tự lưu thành công\n2. 501 ký tự bị chặn kèm \"Note must be 500 characters or fewer.\"",
+          "note_en": "Limit 500 confirmed by BA, see assumption #20. Boundary case is UI-observable -> Playwright branch, NOT manual",
+          "note_vn": "Giới hạn 500 do BA xác nhận, xem giả định #20. Case Boundary quan sát được trên UI -> nhánh Playwright, KHÔNG phải manual"
         }
       ]
+    }
+  ],
+  "assumptions": [
+    {
+      "ref": "#20",
+      "topic": "Note max length",
+      "gap": "Spec and Figma do not state a limit",
+      "assumption": "500 characters",
+      "question": "What is the maximum length of the note?",
+      "answer": "500 characters — confirmed by BA",
+      "date_closed": "2026-08-22"
     }
   ]
 }

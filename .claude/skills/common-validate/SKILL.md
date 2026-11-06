@@ -1,10 +1,9 @@
 ---
 name: common-validate
 description: >-
-  Bộ check validate chuẩn tái dùng cho mọi màn hình Telemax, gom theo loại field:
+  Bộ check validate chuẩn tái dùng cho mọi màn hình Scientec, gom theo loại field:
   text, email, password, number, checkbox/radio, dropdown, date, file upload,
-  list/search/paging, API, và dữ liệu telematics (thiết bị offline, timezone, đơn
-  vị đo, toạ độ/bản đồ, realtime). Dùng khi viết test case cho một form có field
+  list/search/paging, và API. Dùng khi viết test case cho một form có field
   nhập liệu hoặc một endpoint, để không sót ca biên quen thuộc — empty, maxlength,
   ký tự đặc biệt, ranh giới số, sai định dạng, token lỗi. Kích hoạt cả khi người
   dùng chỉ nói "viết test cho field X", "phủ validate cho form này", "test API
@@ -22,10 +21,9 @@ quên test paste vượt maxlength, quên năm nhuận, quên token hết hạn)
 |---|---|
 | Field nhập liệu, dropdown, date, upload, list/search/paging | [reference/web-fields.md](reference/web-fields.md) |
 | Endpoint API | [reference/api.md](reference/api.md) |
-| Màn hình/endpoint hiển thị dữ liệu từ thiết bị | [reference/telematics.md](reference/telematics.md) |
 
-Chỉ đọc file tương ứng với thứ đang test. Màn hình có cả form lẫn dữ liệu thiết bị
-thì đọc cả hai.
+Chỉ đọc file tương ứng với thứ đang test. Màn hình có form gọi tới endpoint cần
+test riêng thì đọc cả hai.
 
 Skill KHÔNG tự đoán field nào thuộc nhóm nào. Người viết nhìn màn hình thật, với mỗi
 field chọn (các) nhóm phù hợp. Một field có thể áp nhiều nhóm (VD ô "Email đăng
@@ -69,14 +67,14 @@ Dùng đúng bộ Type cố định của harness:
 **UI · Validation · Boundary · Negative · Functional · Business rule · API**
 
 Ánh xạ gợi ý: hiển thị mặc định → UI · sai định dạng/bắt buộc → Validation · ranh
-giới độ dài/số/toạ độ → Boundary · nhập bậy/mất mạng/gửi lặp/dữ liệu bẩn từ thiết bị
+giới độ dài/số/ngày → Boundary · nhập bậy/mất mạng/gửi lặp/dữ liệu bẩn
 → Negative · luồng lưu thành công → Functional · ràng buộc nghiệp vụ và quy tắc
-chuyển đổi đơn vị → Business rule · endpoint → API.
+tính toán (thuế, làm tròn, tiền tệ) → Business rule · endpoint → API.
 
 ## Quan hệ với sheet "Common Validate" và skill `testcase-template`
 
 - **Sheet "Common Validate"** trong file test case là bản tra cứu tĩnh, nằm sẵn
-  trong template và đi theo mọi file. KHÔNG fill lại mỗi ticket, KHÔNG do skill này
+  trong template và đi theo mọi file. KHÔNG fill lại mỗi tính năng, KHÔNG do skill này
   sinh ra.
 - **Skill này** không đổ sheet, không sinh file. Nó là tri thức về *cần phủ gì*.
 - Test case cụ thể được đổ vào sheet "Test Cases" qua skill `testcase-template`.
@@ -88,5 +86,4 @@ chuyển đổi đơn vị → Business rule · endpoint → API.
 - [ ] Field read-only không bị nhồi check nhập liệu vô nghĩa
 - [ ] Không chép nguyên câu khuôn vào Expected
 - [ ] Test case sinh ra có Type gán đúng theo bộ Type cố định
-- [ ] Màn hình/endpoint có dữ liệu từ thiết bị đã được soi nhóm telematics
 - [ ] Case không tự động hoá được đã ghi rõ lý do để đánh dấu `[MANUAL]` khi chạy

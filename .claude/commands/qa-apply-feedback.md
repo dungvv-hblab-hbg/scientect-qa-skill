@@ -1,24 +1,15 @@
 ---
-description: Áp phản hồi review vào checklist — hoặc, với ticket không có spec, đọc spec ngược bạn đã ký và đẩy lên ClickUp
-argument-hint: TLM-XXXX
+description: Áp phản hồi review vào checklist của một tính năng, giữ nguyên số thứ tự
+argument-hint: <ID>
 ---
 
-Áp phản hồi review vào checklist của ticket **$1**.
+Áp phản hồi review vào checklist của tính năng **$1**.
 
 **Chặng này chạy THẲNG trong session chính, không gọi subagent.** Nó chỉ đọc một file
-`.md` local, sửa vài mục theo số thứ tự, rồi ghi lại — không MCP, không ticket, không
-Excel, output nhỏ. Đưa vào subagent thì mất ~8.500 token cho một việc vài tool call,
+`.md` local, sửa vài mục theo số thứ tự, rồi ghi lại — không MCP, không Excel,
+output nhỏ. Đưa vào subagent thì mất ~8.500 token cho một việc vài tool call,
 và **mất luôn khả năng hỏi lại**: phản hồi mơ hồ là đúng lúc cần hỏi, mà subagent thì
 không dừng chờ người được — nó buộc phải kết thúc và bạn chạy lại lệnh từ đầu.
-
-## Chọn nhánh TRƯỚC — hai loại file, hai việc khác nhau
-
-| File có trong `.qa/$1/` | Nhánh |
-|---|---|
-| `checklist_$1.md` | **áp phản hồi review** — phần còn lại của file này |
-| `spec-draft_$1.md` | **ký duyệt spec ngược** — mục "Nhánh ký duyệt" ở cuối |
-| cả hai | hỏi tôi muốn làm cái nào. Đừng tự chọn |
-| không cái nào | dừng, bảo tôi chạy `/qa-analyze $1` trước |
 
 ## Cổng đầu vào
 
@@ -66,20 +57,8 @@ Nhắc lại một lần nếu tôi vẫn muốn đi tiếp khi còn câu hỏi 
 ## Ranh giới
 
 - KHÔNG viết test case, KHÔNG tạo file Excel — đó là `/qa-write-cases`.
-- KHÔNG tự confirm thay người review, KHÔNG tự đổi `❓` thành `✅`.
-- KHÔNG ghi lên ClickUp trước khi tôi duyệt cả lô.
+- KHÔNG tự confirm thay người review.
 - KHÔNG xoá section "Phản hồi review" — chuyển xuống "Đã xử lý".
-
-## Nhánh ký duyệt — `spec-draft_$1.md`
-
-`/qa-analyze` đã đi nhánh không-có-spec và tôi đã ký ✅/❌/❓ trong file.
-
-**Đọc `.claude/agents/reference/no-spec-mode.md`, mục C** rồi làm đúng theo: phân ba
-nhóm, xin duyệt MỘT lô, ghi bản local trước rồi mới đăng ClickUp. Vẫn chạy thẳng trong
-session chính, không gọi subagent.
-
-Một điều phải nhớ trước khi mở file đó: **không tự đổi `❓` thành `✅`**. Dòng `❓` còn
-lại là thông tin thật — nó nói module này còn chỗ chưa ai biết đúng sai.
 
 ## Ghi trạng thái (bắt buộc — để `/qa-status` và resume dùng được)
 

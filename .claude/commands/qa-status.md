@@ -1,6 +1,6 @@
 ---
-description: Đang ở đâu trong quy trình QA — ticket nào dở dang, chặng nào tiếp theo. Đọc-only
-argument-hint: (không tham số = mọi ticket · TLM-XXXX = một ticket)
+description: Đang ở đâu trong quy trình QA — tính năng nào dở dang, chặng nào tiếp theo. Đọc-only
+argument-hint: (không tham số = mọi feature ID · <ID> = một tính năng)
 ---
 
 Cho tôi biết **đang ở đâu** và **nên chạy gì tiếp**. Đọc-only, không sửa gì.
@@ -27,10 +27,10 @@ Lệch nhau thì **báo thẳng, đừng làm phẳng**:
 
 | Journal | Artifact | Nói gì |
 |---|---|---|
-| `analyze: done` | `checklist: false`, `findings: false` | "Nhật ký nói đã phân tích nhưng **không thấy** `checklist_$1.md`. File bị xoá hay đổi tên? Chạy lại `/qa-analyze $1`." |
-| `analyze: done` | `checklist: false`, `findings: true` | **Không phải lệch.** Ticket đi nhánh không-có-spec, nhánh đó cố ý không sinh checklist. Đừng giục chạy lại |
+| `analyze: done` | `checklist: false` | "Nhật ký nói đã phân tích nhưng **không thấy** `checklist_$1.md`. File bị xoá hay đổi tên? Chạy lại `/qa-analyze $1`." |
+| `analyze: done` | `spec_snapshot: false` | "Không thấy bản chụp `.qa/$1/spec.md` — các chặng sau đọc spec từ đó. Chạy lại `/qa-analyze`." |
 | `write-cases: done` | `testcase_xlsx: []` | "Không thấy file `.xlsx` nào. Chạy lại `/qa-write-cases $1`." |
-| chưa có mục nào | có artifact | "Có file nhưng chưa có nhật ký — ticket này chạy từ trước khi harness ghi trạng thái. Suy từ artifact." |
+| chưa có mục nào | có artifact | "Có file nhưng chưa có nhật ký — tính năng này chạy từ trước khi harness ghi trạng thái. Suy từ artifact." |
 
 **Không có `state.json` KHÔNG có nghĩa là chưa làm gì.** Suy trạng thái từ artifact:
 có `checklist_*.md` → analyze xong · có `*.xlsx` → write-cases xong · có
@@ -42,35 +42,35 @@ có `checklist_*.md` → analyze xong · có `*.xlsx` → write-cases xong · c�
 như chắc chắn là đứt**, không phải đang chạy — session hết hạn, người dùng bấm dừng,
 máy sập. Nói thẳng:
 
-> `/qa-run TLM-2901` đang `in_progress` từ 09:14 (hơn 4 tiếng), ghi chú cuối:
-> "case 30/45, Round 1". Nhiều khả năng đứt giữa chừng. Chạy lại `/qa-run TLM-2901`
+> `/qa-run INV-001` đang `in_progress` từ 09:14 (hơn 4 tiếng), ghi chú cuối:
+> "case 30/45, Round 1". Nhiều khả năng đứt giữa chừng. Chạy lại `/qa-run INV-001`
 > — cổng sẽ đề xuất `RESUME: có` và tiếp từ case 31, không chạy lại 30 case đầu.
 
 ## Trình bày
 
 ### Không có `$1` — toàn cảnh
 
-Không ticket nào → nói thẳng **"chưa chạy ticket nào"**, rồi mời `/qa-analyze TLM-XXXX`.
+Không feature ID nào → nói thẳng **"chưa chạy tính năng nào"**, rồi mời `/qa-analyze specs/<ID>.md`.
 Đừng bịa ra một bảng rỗng.
 
-Có ticket → bảng, **mới nhất lên đầu** (dữ liệu đã sắp sẵn):
+Có feature ID → bảng, **mới nhất lên đầu** (dữ liệu đã sắp sẵn):
 
-| Ticket | Chặng cuối | Trạng thái | Cập nhật | Bước tiếp theo |
+| Feature ID | Chặng cuối | Trạng thái | Cập nhật | Bước tiếp theo |
 |---|---|---|---|---|
 
-Nhiều hơn 5 ticket thì chỉ hiện 5 cái gần nhất, nêu tổng số, và nói cách xem một cái
-cụ thể (`/qa-status TLM-XXXX`).
+Nhiều hơn 5 feature ID thì chỉ hiện 5 cái gần nhất, nêu tổng số, và nói cách xem một cái
+cụ thể (`/qa-status <ID>`).
 
 **Chỉ rõ MỘT việc nên làm tiếp** — cái dở dang gần nhất. Đừng liệt kê sáu lựa chọn
 ngang hàng rồi để tôi tự chọn.
 
-### Có `$1` — chi tiết một ticket
+### Có `$1` — chi tiết một tính năng
 
 Bảng bảy chặng theo đúng thứ tự, mỗi chặng: trạng thái · thời điểm · ghi chú · artifact:
 
 | # | Chặng | Trạng thái | Lúc | Artifact |
 |---|---|---|---|---|
-| 1 | analyze | done | 09:02 | `checklist_$1.md`, `analysis-spec.md`, `analysis-code.md` |
+| 1 | analyze | done | 09:02 | `spec.md`, `checklist_$1.md` |
 | 2 | apply-feedback | — | | |
 | … | | | | |
 
@@ -80,24 +80,22 @@ Rồi **một dòng** kết luận: lệnh tiếp theo nên chạy, và vì sao.
 
 | Trạng thái đọc được | Gợi ý |
 |---|---|
-| Chưa có gì | `/qa-analyze $1` |
+| Chưa có gì | `/qa-analyze specs/$1.md` (hoặc đường dẫn spec thật + `$1`) |
 | `analyze: done`, checklist có, chưa apply-feedback | Mở checklist review. Có sửa → ghi vào "Phản hồi review" rồi `/qa-apply-feedback $1`. Không sửa gì → `/qa-write-cases $1` |
-| `analyze: done`, có `findings`, không có `spec_draft` | Nhánh không-có-spec, chọn "săn bug". Đọc `findings_$1.md`, xoá dòng không đồng ý, rồi `/qa-file-bugs $1`. **Ticket này không có test case Excel** — đúng thiết kế |
-| có `spec_draft`, chưa có `spec_signed` | Ký `spec-draft_$1.md` (✅/❌/❓ từng dòng) rồi `/qa-apply-feedback $1` |
-| có `spec_signed` | Spec đã ký. `/qa-analyze $1` lại từ đầu để ra checklist bình thường |
 | `apply-feedback: done` | `/qa-write-cases $1` |
 | `write-cases: done`, có `.xlsx` | Review file test case, rồi `/qa-run $1` |
 | `run: in_progress` | `/qa-run $1` — cổng sẽ đề xuất `RESUME: có` |
-| `run: done` | Review sheet **Defects & Follow-ups** (bản LOCAL), rồi `/qa-file-bugs $1` |
-| `file-bugs: done` | Xong chặng staging. Sau khi deploy: `/qa-verify-prod $1` |
-| `verify-prod: done` | Ticket đã đi hết vòng |
+| `run: done` | Review sheet **Defects & Follow-ups** (bản LOCAL), rồi `/qa-export-bugs $1` |
+| `export-bugs: in_progress`, có `bugs_draft`, chưa có `bugs_report` | Lô bug nháp `bugs-draft_$1.md` đang chờ duyệt. Duyệt (bỏ/sửa dòng) rồi `/qa-export-bugs $1` |
+| `export-bugs: done` | Đã có `bugs_$1.md`. Xong chặng staging. Sau khi bản sửa lên production: `/qa-verify-prod $1` |
+| `verify-prod: done` | Tính năng đã đi hết vòng |
 | `retro: done` | Đã có `retro-<ngày>.md`. Mở đọc — mục **High** là thứ cần sửa trước |
 | Bất kỳ chặng nào `failed` | Nêu ghi chú lỗi đã lưu, đề xuất chạy lại đúng chặng đó |
 
 `retro` là chặng **tuỳ chọn**: không có nó KHÔNG phải thiếu sót, đừng giục. Chỉ nhắc
 `/qa-retro $1` khi chặng `run` là `failed`, hoặc khi tôi hỏi vì sao lượt chạy kỳ lạ.
 
-Thiếu điều kiện môi trường (không phải trạng thái ticket) → trỏ sang **`/qa-doctor`**,
+Thiếu điều kiện môi trường (không phải trạng thái tính năng) → trỏ sang **`/qa-doctor`**,
 đừng đoán.
 
 ## Ranh giới

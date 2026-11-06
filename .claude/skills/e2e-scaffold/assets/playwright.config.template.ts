@@ -22,7 +22,7 @@ export const STORAGE_STATE = path.join(__dirname, 'playwright/.auth/user.json');
 export const PROD_STORAGE_STATE = path.join(__dirname, 'playwright/.auth/prod.json');
 
 export default defineConfig({
-  // Spec của ticket: tests/<TICKET-ID>.spec.ts — MỘT FILE CHO MỘT TICKET.
+  // Spec của tính năng: tests/<ID>.spec.ts — MỘT FILE CHO MỘT FEATURE ID.
   testDir: './tests',
 
   // TẮT CÓ CHỦ ĐÍCH — hàng rào, không phải tuỳ chọn phong cách.
@@ -32,7 +32,7 @@ export default defineConfig({
   // giống hệt selector hỏng, nên rất dễ đi sửa 30 selector vốn không hỏng.
   // Đo được: 24 fail khi chạy song song (5 worker), cùng bộ test pass hết
   // với --workers=1. Các FILE vẫn chạy song song; chỉ test trong CÙNG một file bị
-  // tuần tự hoá — mà harness dùng một file cho một ticket, nên đây đúng là thứ cần.
+  // tuần tự hoá — mà harness dùng một file cho một tính năng, nên đây đúng là thứ cần.
   // Bật lại `true` chỉ khi đã đo được rằng app chịu được, đừng bật theo mặc định.
   fullyParallel: false,
 
@@ -54,7 +54,7 @@ export default defineConfig({
     // Bật nếu môi trường staging dùng chứng chỉ tự ký.
     // ignoreHTTPSErrors: true,
 
-    // HÀNG RÀO 4 — bug cần bằng chứng. `clickup-bug-format` yêu cầu Actual Result
+    // HÀNG RÀO 4 — bug cần bằng chứng. `bug-report-format` yêu cầu Actual Result
     // cụ thể (message thật, status thật); harness lấy chúng từ test-results/.
     // Đừng tắt ba dòng này.
     trace: 'on-first-retry',

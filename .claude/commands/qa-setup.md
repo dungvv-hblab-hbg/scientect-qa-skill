@@ -15,14 +15,14 @@ Kiểm từng cái rồi báo tôi trạng thái **trước khi chạy bất c�
 | MCP Playwright | có `.mcp.json` ở gốc repo với entry `playwright` không, và `Playwright:browser_*` có trong danh sách tool không |
 | **`.mcp.json` khớp `qa-config.md` chưa** | so từng tham số, xem mục riêng bên dưới |
 | **Có server `playwright` trùng ở scope khác không** | `claude mcp list` — xem mục 2c |
-| **Project e2e** | xem mục 2d — dò trước, hỏi, rồi mới dựng. Đừng giả định `telemax-e2e/` tồn tại |
+| **Project e2e** | xem mục 2d — dò trước, hỏi, rồi mới dựng. Đừng giả định `scientec-e2e/` tồn tại |
 | `.env` của e2e | `<project e2e>/.env` tồn tại không (biết đường dẫn sau mục 2d) |
 | `qa-config.md` | còn dòng nào `CHƯA ĐIỀN` không |
 | **Python + openpyxl** | `bash .claude/scripts/qa-py.sh -c "import openpyxl, sys; print(sys.executable)"` |
 | **LibreOffice** (cho `recalc.py`) | `which soffice \|\| ls /Applications/LibreOffice.app 2>/dev/null` |
-| **Secret của e2e đã ignore chưa** | `for f in <e2e>/.env <e2e>/playwright/.auth/user.json; do git check-ignore -q "$f" \|\| echo "CHƯA IGNORE: $f"; done` — không in gì = đạt. `user.json` chứa `authToken_*`/`refreshToken` sống, và `git status` gộp cả cây thành một dòng `?? <e2e>/` nên nhìn mắt không thấy. Có dòng nào in ra → sửa `.gitignore` **trước mọi bước khác**. **Phải lặp từng file**: `check-ignore -q` chỉ nhận MỘT đường dẫn, truyền hai cái là `fatal:` và nhánh `||` báo "chưa ignore" kể cả khi đã ignore đúng |
+| **Secret của e2e đã ignore chưa** | `for f in <e2e>/.env <e2e>/playwright/.auth/user.json; do git check-ignore -q "$f" \|\| echo "CHƯA IGNORE: $f"; done` — không in gì = đạt. `user.json` chứa token đăng nhập còn sống, và `git status` gộp cả cây thành một dòng `?? <e2e>/` nên nhìn mắt không thấy. Có dòng nào in ra → sửa `.gitignore` **trước mọi bước khác**. **Phải lặp từng file**: `check-ignore -q` chỉ nhận MỘT đường dẫn, truyền hai cái là `fatal:` và nhánh `||` báo "chưa ignore" kể cả khi đã ignore đúng |
 | **Session code e2e** | `ls <project e2e>/playwright/.auth/user.json` |
-| **Postman collection** | `ls tests/postman/telemax.postman_collection.json` — đường dẫn khai ở `qa-config.md` |
+| **Postman collection** | `ls tests/postman/scientec.postman_collection.json` — đường dẫn khai ở `qa-config.md` |
 
 Cái nào đã có thì bỏ qua, đừng cài đè.
 
@@ -38,12 +38,12 @@ python3 -m venv .claude/.venv && .claude/.venv/bin/python -m pip install openpyx
 ```
 
 Đã có `.qa/.venv` từ trước thì **vẫn chạy được** — wrapper nhận nó. Nhưng nêu với tôi
-rằng nên chuyển sang `.claude/.venv`: `.qa/` là thư mục kết quả theo ticket, dọn `.qa/`
+rằng nên chuyển sang `.claude/.venv`: `.qa/` là thư mục kết quả theo feature ID, dọn `.qa/`
 là mất venv.
 
 **Đừng chạy `pip install openpyxl` trần** — thất bại với `externally-managed-environment`
 (PEP 668) trên macOS Homebrew và Ubuntu 23+. Cũng **đừng dựng venv ở chỗ khác**
-(`.qa/.venv`, `~/.qa-venv`…): `.qa/` là thư mục kết quả theo ticket, và venv lạc thì
+(`.qa/.venv`, `~/.qa-venv`…): `.qa/` là thư mục kết quả theo feature ID, và venv lạc thì
 session sau không biết đường tìm. Đã có venv riêng thì đặt `QA_PYTHON` trỏ tới nó thay
 vì tạo thêm cái mới.
 
@@ -170,7 +170,7 @@ Phải có đủ, đúng giá trị như bảng Playwright trong `.claude/qa-con
 `--timeout-navigation 120000` · `--timeout-settle 1000` · `--viewport-size`.
 
 Và phải **KHÔNG có** `--isolated` / `--storage-state`: cặp này không nạp được session
-của Telemax (xem dòng "Gộp còn MỘT session" trong `qa-config.md`).
+nằm trong localStorage của SPA (xem dòng "Gộp còn MỘT session" trong `qa-config.md`).
 
 Thiếu hoặc lệch → báo tôi đúng dòng nào sai, đề xuất nội dung đúng, chờ tôi duyệt rồi
 sửa. Hậu quả gặp thật khi thiếu: `--timeout-action` mặc định **5s**, `browser_wait_for`
@@ -189,13 +189,15 @@ khởi động, sửa giữa session không có tác dụng và không có tín 
 - Sau khi điền `.env`: chạy `node .claude/scripts/seed-mcp-profile.mjs` để đăng nhập
   vào profile MCP. **Chạy trước khi gọi bất kỳ tool MCP nào** — MCP giữ lock trên thư
   mục profile một khi đã mở browser.
-- Xác nhận mục **Ticket** của `.claude/qa-config.md`: tiền tố ticket (`TLM-`) và hai
-  tên nhánh (`stage` / `master`) đúng với repo này. Không có ô `CHƯA ĐIỀN` nào canh
-  chúng, nên sai thì `/qa-run` dừng ở cổng 1 với lý do sai hoàn toàn.
-- Điền `.claude/qa-config.md`: list/space ClickUp chứa bug, tag, đường dẫn Postman.
-  Liệt kê đúng những dòng còn `CHƯA ĐIỀN`.
-- Bật connector ClickUp và Figma (`/mcp` → chọn server → Authenticate). Đây là
-  connector OAuth, khác Playwright MCP.
+- Xác nhận mục **Dự án & môi trường** của `.claude/qa-config.md` (`qa-config.sh project`):
+  thư mục spec (`specs/`) và hai URL staging / production. URL hiện là **giữ chỗ**
+  (`*.example.com`, đánh dấu TODO) — thay bằng URL thật của Scientec trong `qa-config.md`
+  và `<project e2e>/.env`. Không có ô `CHƯA ĐIỀN` nào canh chúng, nên URL sai thì
+  `npm run check` đỏ với lý do khó đoán.
+- Điền `.claude/qa-config.md`: đường dẫn Postman. Liệt kê đúng những dòng còn `CHƯA ĐIỀN`.
+- (Tuỳ chọn) Bật connector Figma (`/mcp` → chọn server → Authenticate) nếu spec có link
+  Figma. Đây là connector OAuth, khác Playwright MCP. Không bật thì `test-analyst` bỏ qua
+  link Figma và ghi chú lại.
 
 ## 4. Kiểm lại
 
@@ -213,6 +215,6 @@ Rồi chạy `bash .claude/scripts/smoke-scripts.sh` để chắc tầng script 
 ## 5. Tổng kết
 
 Báo bằng tiếng Việt: cái gì đã có sẵn, cái gì vừa cài, cái gì còn chờ tôi làm, và lệnh
-tiếp theo nên chạy (`/qa-analyze TLM-XXXX`).
+tiếp theo nên chạy (`/qa-analyze specs/<ID>.md`).
 
 Đừng tự điền `.env`, đừng tự sửa `qa-config.md`, đừng tự bật connector OAuth.

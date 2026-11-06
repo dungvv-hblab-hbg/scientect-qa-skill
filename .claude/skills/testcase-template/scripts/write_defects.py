@@ -11,10 +11,11 @@ Năm chế độ (xem `--mode`), phục vụ luồng tạo bug có human-in-the-
 2) --mode read      : SAU khi người dùng review (đánh dấu Fix Status, sửa Actual),
    trả JSON các dòng CẦN TẠO BUG. Kèm Steps/Expected ghép từ sheet Test Cases.
 
-3) --mode writeback : ghi ClickUp ticket ID về file sau khi đã tạo bug.
+3) --mode writeback : ghi Bug ID (VD BUG-INV-001-001) về file sau khi người dùng
+   đã duyệt lô bug và bug report đã được ghi ra .qa/<ID>/bugs_<ID>.md.
 
 Ranh giới: script chỉ đọc/ghi ô Excel. Nó KHÔNG chạy test (agent làm, truyền
-Actual vào), KHÔNG tạo bug (agent gọi ClickUp), KHÔNG quyết dòng nào bỏ.
+Actual vào), KHÔNG soạn bug report (bug-writer làm), KHÔNG quyết dòng nào bỏ.
 
 ────────────────────────────────────────────────────────────────────────────
 BA QUY TẮC AN TOÀN (đừng bỏ, mỗi cái từng gây mất dữ liệu thật)
@@ -25,8 +26,8 @@ BA QUY TẮC AN TOÀN (đừng bỏ, mỗi cái từng gây mất dữ liệu th
    (kèm Actual người dùng đã review).
 
 2. KHOÁ THEO TC ID, không theo số dòng.
-   writeback nhận {tc_id: ticket_id}. Số dòng lệch ngay khi người dùng chèn/xoá
-   một dòng trong Excel giữa read và writeback → Ticket ID gắn nhầm case.
+   writeback nhận {tc_id: bug_id}. Số dòng lệch ngay khi người dùng chèn/xoá
+   một dòng trong Excel giữa read và writeback → Bug ID gắn nhầm case.
 
 3. KHÔNG dùng "xoá dòng" làm tín hiệu từ chối.
    Muốn nói "case này không tạo bug", người dùng đặt Fix Status = "Won't fix"
@@ -209,10 +210,11 @@ def mode_read(wb):
 
 # ---------------------------------------------------------------- writeback
 def mode_writeback(wb, mapping):
-    """Ghi ClickUp ticket ID (TLM-xxxx) về file. mapping: {tc_id: ticket_id}.
+    """Ghi Bug ID về file. mapping: {tc_id: bug_id} — bug_id là chuỗi bất kỳ không rỗng
+    (quy ước harness: BUG-<ID>-NNN).
 
     Khoá theo TC ID chứ KHÔNG theo số dòng: chỉ cần người dùng chèn/xoá một dòng
-    giữa read và writeback là index dòng lệch và Ticket ID gắn nhầm case.
+    giữa read và writeback là index dòng lệch và Bug ID gắn nhầm case.
     """
     ws_def = wb["Defects & Follow-ups"]
     ws_tc = wb["Test Cases"]
@@ -365,7 +367,7 @@ def main():
     ap.add_argument("--not-run-only", action="store_true",
                     help="mode cases: bỏ case đã có Pass/Fail ở --round")
     ap.add_argument("--actuals", default="{}", help='JSON {TC_ID: actual_text} cho mode fill')
-    ap.add_argument("--bugmap", default="{}", help='JSON {TC_ID: ticket_id} cho mode writeback')
+    ap.add_argument("--bugmap", default="{}", help='JSON {TC_ID: bug_id} cho mode writeback')
     ap.add_argument("--no-backup", action="store_true",
                     help="Bỏ qua backup .bak (KHÔNG khuyến khích)")
     args = ap.parse_args()
@@ -395,15 +397,16 @@ def main():
         rows, skipped = mode_read(wb)
         result = {
             "mode": "read", "bugs_to_create": rows, "skipped": skipped,
-            "note": ("Mỗi phần tử là 1 bug cần tạo trên ClickUp. Sau khi tạo, gọi "
-                     "--mode writeback --bugmap '{\"TC-A-001\": \"TLM-1234\"}' (khoá theo TC ID)."),
+            "note": ("Mỗi phần tử là 1 bug cần soạn report. Sau khi người dùng duyệt và đã ghi "
+                     "bugs_<ID>.md, gọi --mode writeback --bugmap "
+                     "'{\"TC-A-001\": \"BUG-INV-001-001\"}' (khoá theo TC ID)."),
         }
     else:
         written, failed = mode_writeback(wb, json.loads(args.bugmap))
         wb.save(args.file)
         result = {
             "mode": "writeback", "written": written, "failed": failed,
-            "note": ("Đã ghi ticket ID vào cột Bug ID/Ticket (Defects) và cạnh Result của round "
+            "note": ("Đã ghi Bug ID vào cột Bug ID/Ticket (Defects) và cạnh Result của round "
                      "fail (Test Cases). Retest sẽ bỏ qua các case này."),
             "backup": None if args.no_backup else args.file + ".bak",
             "reminder": "Chạy recalc.py để Summary tính lại.",

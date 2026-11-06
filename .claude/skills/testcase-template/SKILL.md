@@ -1,10 +1,10 @@
 ---
 name: testcase-template
 description: >-
-  Dùng khi cần biến checklist đã review thành bộ test case Excel chuẩn của Telemax,
-  viết test case cho một ticket, hay xuất test case ra file để chạy — kể cả khi
+  Dùng khi cần biến checklist đã review thành bộ test case Excel chuẩn của Scientec,
+  viết test case cho một tính năng, hay xuất test case ra file để chạy — kể cả khi
   người dùng chỉ nói "viết test case", "gen test case", "làm file test case cho
-  ticket này".
+  tính năng này".
 ---
 
 # Testcase-template
@@ -45,7 +45,7 @@ quyết khi nào được viết test case — những phần đó do agent đi�
 | Cần | Nguồn | Thiếu thì |
 |---|---|---|
 | `cover.module` / `version` / `source` / `create_date` | người dùng xác nhận ở cổng đầu vào | **Hỏi.** `build.py` exit 1 nếu thiếu — đừng lách bằng cách tự điền `1.0` hay ngày hôm nay mà không xác nhận |
-| `cover.source` khi chưa có ticket | — | Ghi thẳng `Dán tay trong chat, chưa có ticket — <ngày>`. **Đừng bịa mã ticket** để ô Cover trông đẹp: sheet Cover là chỗ người khác tra nguồn sau này |
+| `cover.source` | feature ID + đường dẫn spec (+ link Figma) ở mục A của checklist | Ghi đúng nguồn đã đọc, VD `INV-001 · specs/INV-001.md`. **Đừng bịa** link hay đường dẫn để ô Cover trông đẹp: sheet Cover là chỗ người khác tra nguồn sau này |
 | Nội dung test case (Steps, Expected, Data) | agent, dựa trên checklist đã review | Ràng buộc/message không có ở D1/D2 → hỏi, không tự nghĩ giá trị |
 | Priority | agent quyết theo rủi ro | Tự quyết được, nhưng phải báo phân bố trong tổng kết |
 | Danh sách AC | mục E2 của checklist | Không có AC thì Traceability không dựng được — báo rõ, đừng bỏ qua im lặng |
@@ -57,8 +57,8 @@ File này là **tài liệu tester cầm đi chạy tay**, không phải tài li
 
 - **Mỗi bước một thao tác**, bắt đầu bằng động từ, khoảng 15 từ đổ lại:
   `2. Bấm nút "Save"` — không phải một đoạn văn mô tả cả luồng.
-- **Thao tác nhìn thấy được.** "Mở menu Devices" chứ không phải "mở `/devices`";
-  "Xoá trắng ô Vehicle Name" chứ không phải "clear field".
+- **Thao tác nhìn thấy được.** "Mở menu Invoices" chứ không phải "mở `/invoices`";
+  "Xoá trắng ô Note" chứ không phải "clear field".
 - **Expected mô tả cái hiện trên màn hình**, message trích nguyên văn trong nháy.
   Không viết "API trả 422" cho một case UI — tester không nhìn thấy mã đó.
 - **Không thuật ngữ code** (`H1`, `div`, `mapper`, tên bảng DB). Nhãn UI tiếng Anh thì
@@ -77,13 +77,13 @@ giờ sửa VN rồi mong EN tự đổi. Mọi công thức Summary đếm trê
 ## Template asset
 
 `assets/template.xlsx` là template **rỗng** (đã xoá data mẫu, giữ khung, header,
-dropdown, công thức Summary). Luôn **clone file này cho mỗi ticket mới**, KHÔNG sửa
+dropdown, công thức Summary). Luôn **clone file này cho mỗi tính năng mới**, KHÔNG sửa
 trực tiếp file asset, KHÔNG append vào file cũ.
 
 8 sheet: `Cover · Summary · Test Cases · Test Cases_VN · Common Validate ·
 Defects & Follow-ups · Traceability · Assumptions & Questions`.
 
-Mọi ô ticket-cụ-thể trong template để placeholder `<MODULE>` / `<SOURCE>` / `<VER>`
+Mọi ô riêng-của-tính-năng trong template để placeholder `<MODULE>` / `<SOURCE>` / `<VER>`
 / `<DATE>`. Placeholder sót lại trong output nghĩa là `cover` thiếu field —
 `build.py` chặn từ trước, exit 1.
 
@@ -119,10 +119,10 @@ chức năng*. Đừng lẫn hai quy ước.
 
 ### Giới hạn 12 section
 
-Bảng **RESULT BY SECTION** ở sheet Summary có **12 slot** công thức. Ticket vượt quá thì
+Bảng **RESULT BY SECTION** ở sheet Summary có **12 slot** công thức. Tính năng vượt quá thì
 `build.py` **thoát với exit code 2** kèm `PROBLEMS`, không im lặng.
 
-12 là thoải mái cho gần như mọi ticket, nên **chia theo cấu trúc thật của tính năng**,
+12 là thoải mái cho gần như mọi tính năng, nên **chia theo cấu trúc thật của tính năng**,
 đừng nghĩ tới giới hạn. Thật sự vượt thì gộp hai màn hình gần nhau và ghi lý do vào sheet
 Assumptions, để người đọc sau biết đó là ràng buộc công cụ chứ không phải thiết kế.
 
@@ -179,11 +179,12 @@ Sheet này trả lời một câu duy nhất: **có AC nào chưa được test 
 **Đừng giao file khi còn `MISSING` chưa giải thích được.** AC thật sự ngoài scope
 thì phải nằm ở mục D4 (Out of scope) của checklist, không phải trong danh sách AC.
 
-## Cập nhật Cover (mỗi ticket mới)
+## Cập nhật Cover (mỗi tính năng mới)
 
-Mỗi ticket tạo file mới từ template, nên phải thay metadata ở sheet Cover cho khớp
-ticket hiện tại: Module Name, Version, Source/Spec (mã ClickUp + link Figma),
-Create Date, và dòng RECORD OF CHANGE đầu tiên. Không để nguyên thông tin ticket mẫu.
+Mỗi tính năng tạo file mới từ template, nên phải thay metadata ở sheet Cover cho khớp
+tính năng hiện tại: Module Name, Version, Source/Spec (feature ID + đường dẫn spec +
+link Figma), Create Date, và dòng RECORD OF CHANGE đầu tiên. Không để nguyên thông tin
+mẫu.
 
 ## Sheet Defects & Follow-ups (dùng khi tạo bug)
 
@@ -209,17 +210,17 @@ Result** (H) là chỗ ghi nội dung bug; validation Fix Status ở cột K.
 - `--mode fill` — với case Fail/Blocked ở **round mới nhất có kết quả**, APPEND
   dòng Defects; agent điền Actual từ log. Tự bỏ qua: case đã có Bug ID, case đã có
   dòng defect, case `[MANUAL]`, và case đã Pass ở round sau.
-- `--mode read` — trả JSON các bug cần tạo = dòng chưa có Bug ID **và chưa có Fix
+- `--mode read` — trả JSON các bug cần viết = dòng chưa có Bug ID **và chưa có Fix
   Status**, kèm Steps/Expected lấy từ sheet Test Cases.
-- `--mode writeback` — ghi Ticket ID về file, **khoá theo TC ID**.
+- `--mode writeback` — ghi Bug ID local (`BUG-<ID>-NNN`) về file, **khoá theo TC ID**.
 
 ### Ba quy tắc an toàn (mỗi cái từng gây mất dữ liệu thật)
 
 1. **LUÔN APPEND, không lấp lỗ trống.** Dòng mới ghi sau dòng *cuối cùng* có TC ID.
    Lấp ô trống đầu tiên thì một dòng bị xoá ở giữa sẽ khiến lần fill sau đè mất các
    dòng bên dưới — kèm Actual người dùng đã review.
-2. **KHOÁ THEO TC ID, không theo số dòng.** `writeback` nhận `{tc_id: ticket_id}`.
-   Người dùng chèn/xoá một dòng giữa `read` và `writeback` là index lệch và Ticket
+2. **KHOÁ THEO TC ID, không theo số dòng.** `writeback` nhận `{tc_id: bug_id}`.
+   Người dùng chèn/xoá một dòng giữa `read` và `writeback` là index lệch và Bug
    ID gắn nhầm case.
 3. **KHÔNG dùng "xoá dòng" làm tín hiệu từ chối.** Muốn nói "case này không tạo
    bug", đặt **Fix Status = "Won't fix"** (có sẵn trong dropdown cột K). Xoá dòng
@@ -252,13 +253,13 @@ cơ khí**.
    (openpyxl xoá cache công thức khi save nên Summary sẽ trống cho tới bước này).
 5. Kiểm: `total_cases` khớp số case; sau recalc, Total trên Summary == `total_cases`;
    sheet Traceability không còn `MISSING`.
-6. Giao file, đặt ở `.qa/TLM-XXXX/`.
+6. Giao file, đặt ở `.qa/<ID>/`.
 
 ## Tự kiểm trước khi giao
 
 - [ ] `build.py` thoát code 0 (hoặc code 2 đã xử lý xong `PROBLEMS`)
 - [ ] File là bản clone mới, không phải sửa đè asset
-- [ ] Cover đã thay metadata theo ticket hiện tại
+- [ ] Cover đã thay metadata theo tính năng hiện tại
 - [ ] Data bắt đầu từ row 6; mỗi section có divider; ID reset theo section
 - [ ] Cột C/D/J/L chỉ chứa giá trị hợp lệ trong dropdown
 - [ ] Steps là thao tác nhìn thấy được, mỗi bước một việc; không thuật ngữ code

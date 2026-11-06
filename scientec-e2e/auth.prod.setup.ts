@@ -13,8 +13,8 @@ import { PROD_STORAGE_STATE } from './playwright.config';
  * Chỉ chạy như một phần của `npm run test:prod`.
  */
 setup('đăng nhập production và lưu session', async ({ page }) => {
-  const user = process.env.TELEMAX_PROD_USER;
-  const pass = process.env.TELEMAX_PROD_PASS;
+  const user = process.env.SCIENTEC_PROD_USER;
+  const pass = process.env.SCIENTEC_PROD_PASS;
   const base = process.env.PROD_BASE_URL;
 
   if (!base) {
@@ -22,7 +22,7 @@ setup('đăng nhập production và lưu session', async ({ page }) => {
   }
   if (!user || !pass) {
     throw new Error(
-      'Thiếu TELEMAX_PROD_USER / TELEMAX_PROD_PASS. Dùng account QA riêng trên prod, ' +
+      'Thiếu SCIENTEC_PROD_USER / SCIENTEC_PROD_PASS. Dùng account QA riêng trên prod, ' +
       'quyền thấp nhất đủ để xem. KHÔNG dùng account admin, KHÔNG dùng chung với staging.'
     );
   }
@@ -38,9 +38,10 @@ setup('đăng nhập production và lưu session', async ({ page }) => {
   const email = page.getByPlaceholder('Enter your email');
   await email.waitFor({ state: 'visible', timeout: 45_000 });
 
-  // Blazor bind qua event của trình duyệt. `fill()` đặt value một nhát, KHÔNG sinh
-  // chuỗi event mà EditContext cần, nên nút Login giữ nguyên `disabled` và test treo
-  // tới hết timeout. Phải gõ từng ký tự rồi blur.
+  // Gõ từng ký tự rồi blur, không dùng `fill()`: một số framework (VD Blazor) bind
+  // theo chuỗi event của trình duyệt, `fill()` đặt value một nhát nên nút Login giữ
+  // nguyên `disabled` và test treo tới hết timeout. Gõ từng ký tự chạy được với mọi
+  // framework. TODO: selector dưới là mặc định chung giữ chỗ — sửa theo form Scientec.
   await email.click();
   await email.pressSequentially(user, { delay: 30 });
 

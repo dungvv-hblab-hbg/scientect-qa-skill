@@ -14,18 +14,23 @@ gần như không bao giờ, nhưng khi cần thì cần đầy đủ.
 **Ý tưởng:** cho MCP Playwright dùng chung `storageState` với project e2e, để chỉ
 phải đăng nhập một lần thay vì hai.
 
-**Đã thử:** `--isolated --storage-state telemax-e2e/playwright/.auth/user.json`
+**Đã thử:** `--isolated --storage-state scientec-e2e/playwright/.auth/user.json`
 trong args của `.mcp.json`.
 
 **Kết quả:** mọi lệnh MCP vẫn rơi về `/login`, ngay sau khi `npm run auth` báo lưu
 session thành công. Thử cả đường dẫn tương đối lẫn tuyệt đối — như nhau.
 
-**Nguyên nhân gốc:** session Telemax nằm **100% trong localStorage, 0 cookie**.
+**Nguyên nhân gốc:** session của app đo lúc đó (dashboard Blazor WASM, đo trước khi harness được tách cho Scientec) nằm **100% trong localStorage, 0 cookie**.
 `user.json` có `cookies: []` và 12 key trong `origins[0].localStorage`. MCP nạp
 phần cookie, không nạp phần localStorage.
 
 **Kết luận:** hai session tách biệt — profile MCP (`.playwright-mcp-profile/`) và
 `user.json` của code — là **thiết kế**, không phải thiếu sót chờ tối ưu.
+
+**Với Scientec: chưa đo lại.** Kết luận trên dựa vào việc app lưu session trong
+localStorage. Hai session tách biệt vẫn đúng với mọi app, nên cứ giữ nguyên thiết kế;
+chỉ khi đã kiểm `user.json` của Scientec thấy session nằm trong cookie thì mới có lý do
+xem lại mục này.
 
 ## 2. Bơm storage state vào context MCP bằng JS — KHÔNG DÙNG ĐƯỢC
 
@@ -75,7 +80,8 @@ chỉ có `app-version` nghĩa là profile trống, seed lại vô ích cho tớ
 ## 4. Spec .ts fail 30/32 ngay lần chạy đầu — không lỗi nào là lỗi sản phẩm
 
 Biên bản của bộ bẫy locator ghi trong `skills/playwright-export/SKILL.md`. Đo trên
-TLM-3088 (`[Bug][Reports] Report Period displays 24-hour time…`), dashboard Blazor WASM.
+một tính năng màn Reports (Report Period hiển thị giờ 24h) của một dashboard Blazor WASM —
+app đo trước khi harness được tách cho Scientec; bài học về locator không phụ thuộc app.
 
 Diễn biến số fail qua từng lần sửa:
 
@@ -112,7 +118,7 @@ Khi 30/32 cùng đỏ, nguyên nhân mang tính hệ thống, và áp luật per
 
 ## 5. `fullyParallel: true` trên SPA nặng — fail GIẢ trông y hệt selector hỏng
 
-Đo cùng lượt TLM-3088, cùng một bộ test, chỉ đổi cấu hình chạy:
+Đo cùng lượt ở mục 4, cùng một bộ test, chỉ đổi cấu hình chạy:
 
 | Cấu hình | Kết quả |
 |---|---|
@@ -127,5 +133,5 @@ trong worker đó chết ở `beforeEach` với
 
 Kết luận đã áp vào template: `fullyParallel: false` + `workers: 2`. Các FILE vẫn chạy
 song song với nhau; chỉ test trong cùng một file bị tuần tự hoá — mà harness dùng một
-file cho một ticket, nên đây đúng là thứ cần. `workers: undefined` = số core / 2
+file cho một tính năng, nên đây đúng là thứ cần. `workers: undefined` = số core / 2
 (5 worker trên Mac 8 nhân), quá nhiều cho một SPA nặng.

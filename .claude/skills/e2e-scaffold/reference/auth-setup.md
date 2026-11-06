@@ -3,7 +3,7 @@
 Đây là file **app-specific nhất** của cả project e2e, và là chỗ dễ mất buổi nhất khi
 dựng cho app lạ. Đọc hết trước khi viết.
 
-Nguyên tắc chi phối: **spec của ticket không bao giờ chứa bước đăng nhập và không bao
+Nguyên tắc chi phối: **spec của tính năng không bao giờ chứa bước đăng nhập và không bao
 giờ chứa credential.** Đăng nhập một lần ở đây, lưu `storageState`, mọi spec dùng lại.
 
 ## Khung bắt buộc
@@ -148,5 +148,5 @@ Cho timeout 45s (không phải 10s mặc định): SPA tải nguội đầu ngà
 vì app chậm sẽ bị hiểu nhầm thành "selector sai" — đúng cái nhầm file này sinh ra để
 tránh.
 
-File trong `checks/` **không phải test case của ticket**: không có TC ID, không bao
+File trong `checks/` **không phải test case của tính năng**: không có TC ID, không bao
 giờ ghi kết quả vào Excel.

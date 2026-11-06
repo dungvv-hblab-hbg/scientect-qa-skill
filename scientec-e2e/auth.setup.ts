@@ -10,19 +10,19 @@ import { STORAGE_STATE } from './playwright.config';
  *
  * Chạy riêng: npm run auth
  *
- * Selector dựa trên form login thật của dashboard-stage: input dùng placeholder
- * "Enter your email" / "Enter your password", nút "Login". Trang không có
- * data-testid nào, nên đây là lựa chọn ổn định nhất hiện có. Khi FE thêm
- * data-testid thì đổi sang getByTestId.
+ * TODO: selector dưới là mặc định chung GIỮ CHỖ (placeholder "Enter your email" /
+ * "Enter your password", nút "Login") — chưa phải form đăng nhập thật của Scientec.
+ * Khi biết form thật thì sửa ở đây, ở auth.prod.setup.ts, checks/setup-check.spec.ts
+ * và LOGIN_* trong .env. Có data-testid thì ưu tiên getByTestId.
  */
 setup('đăng nhập và lưu session', async ({ page }) => {
-  const user = process.env.TELEMAX_USER;
-  const pass = process.env.TELEMAX_PASS;
+  const user = process.env.SCIENTEC_USER;
+  const pass = process.env.SCIENTEC_PASS;
 
   // Fail sớm với thông báo rõ, thay vì để test đứt ở giữa với lỗi khó hiểu.
   if (!user || !pass) {
     throw new Error(
-      'Thiếu TELEMAX_USER / TELEMAX_PASS. Copy .env.example sang .env rồi điền. ' +
+      'Thiếu SCIENTEC_USER / SCIENTEC_PASS. Copy .env.example sang .env rồi điền. ' +
       'KHÔNG hardcode credential vào file test.'
     );
   }
@@ -34,9 +34,10 @@ setup('đăng nhập và lưu session', async ({ page }) => {
   const email = page.getByPlaceholder('Enter your email');
   await email.waitFor({ state: 'visible', timeout: 45_000 });
 
-  // Blazor bind qua event của trình duyệt. `fill()` đặt value một nhát, KHÔNG sinh
-  // chuỗi event mà EditContext cần, nên nút Login giữ nguyên `disabled` và test treo
-  // tới hết timeout. Phải gõ từng ký tự rồi blur.
+  // Gõ từng ký tự rồi blur, không dùng `fill()`: một số framework (VD Blazor) bind
+  // theo chuỗi event của trình duyệt, `fill()` đặt value một nhát nên nút Login giữ
+  // nguyên `disabled` và test treo tới hết timeout. Gõ từng ký tự chạy được với mọi
+  // framework. TODO: selector dưới là mặc định chung giữ chỗ — sửa theo form Scientec.
   await email.click();
   await email.pressSequentially(user, { delay: 30 });
 

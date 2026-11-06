@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: telemax-e2e
+        working-directory: scientec-e2e
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

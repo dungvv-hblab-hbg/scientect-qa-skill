@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# qa-state.sh — Trạng thái từng chặng của một ticket, để resume được.
+# qa-state.sh — Trạng thái từng chặng của một tính năng (feature ID), để resume được.
 #
-#   bash .claude/scripts/qa-state.sh set  <ticket> <chặng> <trạng thái> ["ghi chú"]
-#   bash .claude/scripts/qa-state.sh get  <ticket>
+#   bash .claude/scripts/qa-state.sh set  <feature-ID> <chặng> <trạng thái> ["ghi chú"]
+#   bash .claude/scripts/qa-state.sh get  <feature-ID>
 #   bash .claude/scripts/qa-state.sh list
 #
-# Chặng:      analyze · apply-feedback · write-cases · run · file-bugs · verify-prod · retro
+# Chặng:      analyze · apply-feedback · write-cases · run · export-bugs · verify-prod · retro
 #             (retro đứng cuối: nó rà lại các chặng trước, không chặn chặng nào)
 # Trạng thái: in_progress · done · failed · skipped
 #
-# File: .qa/<ticket>/state.json  (mỗi ticket một thư mục, đã có sẵn quy ước đó)
+# File: .qa/<ID>/state.json  (mỗi feature ID một thư mục, đã có sẵn quy ước đó)
+# (Khoá JSON vẫn tên `ticket`/`tickets` để khỏi vỡ chỗ đọc — giá trị là feature ID.)
 #
 # ─────────────────────────────────────────────────────────────────────────────
 # ĐÂY LÀ NHẬT KÝ, KHÔNG PHẢI NGUỒN CHÂN LÝ.
@@ -30,15 +31,15 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CMD="${1:-}"
 
-STAGES="analyze apply-feedback write-cases run file-bugs verify-prod retro"
+STAGES="analyze apply-feedback write-cases run export-bugs verify-prod retro"
 STATUSES="in_progress done failed skipped"
 
 usage() {
-  sed -n '2,14p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+  sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
   exit 2
 }
 
-# Dò artifact thật của một ticket. In ra JSON object.
+# Dò artifact thật của một feature ID. In ra JSON object.
 probe() {
   local t="$1" d="$ROOT/.qa/$1"
   python3 - "$d" "$t" <<'PY'
@@ -46,15 +47,11 @@ import json, os, sys, glob
 d, t = sys.argv[1], sys.argv[2]
 g = lambda p: sorted(glob.glob(os.path.join(d, p)))
 print(json.dumps({
-    "analysis_spec":  bool(g("analysis-spec.md")),
-    "analysis_code":  bool(g("analysis-code.md")),
-    "analysis_ui":    bool(g("analysis-ui.md")),
+    "spec_snapshot":  bool(g("spec.md")),
     "checklist":      bool(g(f"checklist_{t}.md")),
-    "findings":       bool(g(f"findings_{t}.md")),
-    "spec_draft":     bool(g(f"spec-draft_{t}.md")),
-    "spec_signed":    bool(g(f"spec-signed_{t}.md")),
     "testcase_xlsx":  [os.path.basename(x) for x in g("*.xlsx")],
-    "bugs_proposed":  bool(g("bugs-proposed.json")),
+    "bugs_draft":     bool(g(f"bugs-draft_{t}.md")),
+    "bugs_report":    bool(g(f"bugs_{t}.md")),
     "phase1_shots":   len(g("phase1/*.png")),
     "prod_reports":   [os.path.basename(x) for x in g("prod-verify-*.md")],
     "progress_log":   bool(g("progress.log")),
@@ -74,7 +71,7 @@ case "$CMD" in
     python3 - "$DIR/state.json" "$TICKET" "$STAGE" "$STATUS" "$NOTE" <<'PY'
 import json, os, sys, tempfile, datetime
 path, ticket, stage, status, note = sys.argv[1:6]
-STAGES = ["analyze", "apply-feedback", "write-cases", "run", "file-bugs", "verify-prod", "retro"]
+STAGES = ["analyze", "apply-feedback", "write-cases", "run", "export-bugs", "verify-prod", "retro"]
 
 data = {"ticket": ticket, "stages": {}}
 if os.path.exists(path):
@@ -129,11 +126,11 @@ PY
   list)
     QA="$ROOT/.qa"
     if [ ! -d "$QA" ]; then
-      echo '{"tickets": [], "note": "chưa có thư mục .qa/ — chưa chạy ticket nào"}'
+      echo '{"tickets": [], "note": "chưa có thư mục .qa/ — chưa chạy tính năng nào"}'
       exit 0
     fi
     # Đưa qua FILE TẠM, không qua stdin: `python3 - <<PY` đã dùng stdin để nạp chính
-    # script, nên pipe vào đó thì `sys.stdin.read()` trả rỗng và list luôn ra 0 ticket.
+    # script, nên pipe vào đó thì `sys.stdin.read()` trả rỗng và list luôn ra 0 feature ID.
     TMP="$(mktemp)"
     trap 'rm -f "$TMP"' EXIT
     for d in "$QA"/*/; do

@@ -1,9 +1,9 @@
 ---
 name: postman-api-test
 description: >-
-  Dùng khi cần test API cho một ticket bằng bộ Postman collection sẵn có của team,
-  kiểm endpoint bị ảnh hưởng bởi thay đổi code, hay chạy lại API test — kể cả khi
-  người dùng nói "test API cho ticket này", "chạy API test", "kiểm endpoint X".
+  Dùng khi cần test API cho một tính năng bằng bộ Postman collection sẵn có của team,
+  kiểm endpoint mà spec của tính năng mô tả, hay chạy lại API test — kể cả khi
+  người dùng nói "test API cho tính năng này", "chạy API test", "kiểm endpoint X".
 ---
 
 # Postman-api-test
@@ -15,13 +15,14 @@ collection team, chỉ bổ sung phần thiếu và chạy đúng phạm vi.
 ## Yêu cầu môi trường
 
 `newman` (`npm install -g newman`) và collection + environment của team ở đường dẫn
-khai báo ở mục Postman: `bash .claude/scripts/qa-config.sh postman`.
+khai báo ở mục Postman: `bash .claude/scripts/qa-config.sh postman` (tên file
+collection mặc định: `scientec.postman_collection.json`).
 
 ## Ranh giới (đọc kỹ — tránh nhầm loại)
 
 - Skill KHÔNG tự quyết **API nào cần test**. Việc đó là phán đoán của **agent**,
-  suy ra từ 3 nguồn: (1) mô tả ticket, (2) input người dùng, (3) git diff các
-  thay đổi liên quan API. Agent đưa cho skill *danh sách endpoint + case cần phủ*.
+  suy ra từ 2 nguồn: (1) spec của tính năng (`.qa/<ID>/spec.md`) và test case API
+  trong Excel, (2) input người dùng. Agent đưa cho skill *danh sách endpoint + case cần phủ*.
 - Skill KHÔNG tự đăng nhập hay cầm token thật. Auth do collection/environment của
   team xử lý; skill chỉ dùng lại cơ chế đó.
 - Skill lo: khớp endpoint ↔ request trong collection, bổ sung case còn thiếu theo
@@ -29,8 +30,8 @@ khai báo ở mục Postman: `bash .claude/scripts/qa-config.sh postman`.
 
 ## Vị trí collection
 
-Collection KHÔNG nằm trong harness (`.claude/`). Nó là tài sản của team, sống trong
-repo code cạnh source và thay đổi theo API thật. Harness chỉ *trỏ tới* nó; đường dẫn
+Collection KHÔNG nằm trong harness (`.claude/`). Nó là tài sản của team và thay đổi
+theo API thật. Harness chỉ *trỏ tới* nó; đường dẫn
 khai báo ở mục Postman: `bash .claude/scripts/qa-config.sh postman`.
 
 Mục Postman trong `qa-config.md` có trường **Trạng thái**:
@@ -48,7 +49,7 @@ Khi team bổ sung collection: đổi Trạng thái thành `CÓ`, chạy lại `
 
 | Cần | Nguồn | Thiếu thì |
 |---|---|---|
-| Danh sách endpoint cần test | agent suy từ ticket / diff / input người dùng | Hỏi. Skill không tự chọn endpoint |
+| Danh sách endpoint cần test | agent suy từ spec / test case / input người dùng | Hỏi. Skill không tự chọn endpoint |
 | TC ID tương ứng từng case | file test case Excel | Hỏi. Không tạo request không truy vết được |
 | Đường dẫn collection + environment | `qa-config.md` | Trạng thái `CHƯA CÓ` → skip nhánh API, đánh `[MANUAL]`. Trạng thái `CÓ` mà file không có → dừng, báo |
 | Auth | environment của team | Dừng, hướng dẫn người dùng cấu hình. **Không hỏi token qua chat** |
@@ -60,7 +61,7 @@ Với mỗi endpoint agent đưa vào:
   chưa được phủ (VD 401 token hết hạn, 409 tạo trùng), **thêm assertion** vào tab
   Tests của request đó theo đúng style team đang dùng (`pm.test` + `pm.expect`).
 - **Chưa có request** → thêm request mới, đặt đúng folder module, đặt tên theo
-  quy ước team (VD `PUT /vehicles/{id} — update odometer`), kế thừa auth ở mức
+  quy ước team (VD `PUT /invoices/{id} — update due date`), kế thừa auth ở mức
   collection/folder (KHÔNG hardcode token trong request).
 
 Mỗi request/case nên gắn **TC ID** từ file Excel trong tên hoặc test name để truy
@@ -75,17 +76,17 @@ khác (403, không lộ data) · không tồn tại (404) · tạo trùng (409) 
 gọi lặp · phân trang/limit vượt ngưỡng · message lỗi không lộ nội bộ · thời gian
 phản hồi trong ngưỡng.
 
-Chỉ phủ case **liên quan tới thay đổi của ticket** — không nhồi toàn bộ 12 case
-cho mọi endpoint nếu ticket chỉ động tới một phần.
+Chỉ phủ case **liên quan tới tính năng đang test** — không nhồi toàn bộ 12 case
+cho mọi endpoint nếu tính năng chỉ động tới một phần.
 
 ## Bước 3 — Chạy CHỌN LỌC bằng newman (không chạy full collection)
 
-Chủ trương: chỉ chạy đúng scope ticket, không chạy cả collection.
+Chủ trương: chỉ chạy đúng scope tính năng, không chạy cả collection.
 
 Cách cô lập phạm vi (ưu tiên từ dễ nhất):
 - **Theo folder**: nếu collection tổ chức theo module, chạy đúng folder liên quan:
   ```
-  newman run <collection.json> -e <env.json> --folder "Vehicles"
+  newman run <collection.json> -e <env.json> --folder "Invoices"
   ```
 - **Theo collection con tạm**: nếu case cần test nằm rải, tạo một collection tạm
   chỉ chứa các request liên quan (export subset) rồi chạy collection tạm đó. Xóa
@@ -96,7 +97,7 @@ Cách cô lập phạm vi (ưu tiên từ dễ nhất):
 Xuất report máy-đọc-được để agent tổng hợp:
 ```
 newman run <collection> -e <env> --folder "<module>" \
-  -r cli,json --reporter-json-export .qa/TLM-XXXX/result.json
+  -r cli,json --reporter-json-export .qa/<ID>/result.json
 ```
 
 ## Bước 4 — Đọc kết quả, bàn giao cho agent
@@ -107,7 +108,7 @@ Bàn giao cho agent để:
 - Với case Fail: **giữ lại message lỗi thật + status code thật** từ `result.json`
   để agent điền vào cột Actual Result của sheet Defects. "Assertion failed" không
   đủ làm Actual — bug cần biết API trả gì.
-- Việc tạo bug do `clickup-bug-format` + `/qa-file-bugs` lo, không thuộc skill này.
+- Việc soạn bug report do `bug-report-format` + `/qa-export-bugs` lo, không thuộc skill này.
 
 Case API **không** chạy được (thiếu môi trường, thiếu data) thì báo lại để agent
 ghi `Blocked` + Note `[MANUAL] <lý do>` — đừng để case nằm `Not Run`.
@@ -122,12 +123,12 @@ ghi `Blocked` + Note `[MANUAL] <lý do>` — đừng để case nằm `Not Run`.
 
 ## Tự kiểm
 
-- [ ] Danh sách endpoint đến từ agent (ticket/diff), không tự bịa
+- [ ] Danh sách endpoint đến từ agent (spec/test case), không tự bịa
 - [ ] Đã khớp với collection sẵn có; chỉ thêm phần thiếu, không viết lại từ đầu
 - [ ] Mỗi case gắn TC ID truy vết về Excel
-- [ ] Chỉ phủ case liên quan scope ticket, không nhồi thừa
+- [ ] Chỉ phủ case liên quan scope tính năng, không nhồi thừa
 - [ ] Chạy CHỌN LỌC (folder/subset), không chạy full collection
 - [ ] Không hardcode secret; env chứa token không bị commit
-- [ ] Report json xuất ra để agent ghi Result + tạo bug
+- [ ] Report json xuất ra để agent ghi Result + soạn bug
 - [ ] Case Fail đã kèm status code + body lỗi thật để làm Actual Result
 - [ ] Case không chạy được đã báo để đánh `[MANUAL]`, không bỏ lửng ở `Not Run`

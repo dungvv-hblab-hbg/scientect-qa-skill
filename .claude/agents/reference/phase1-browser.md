@@ -74,16 +74,21 @@ Session có thể hết hạn ngay giữa chặng. Sau mỗi lần điều hư�
    () => ({ n: localStorage.length, keys: Object.keys(localStorage) })
    ```
 
-   - Có `authToken_*` / `refreshToken` → **session hết hạn thật**.
-   - Chỉ `app-version` → **profile trống**, seed lại bao nhiêu lần cũng vô ích cho tới
-     khi sửa cấu hình. Kết thúc chặng, báo người dùng, đừng lặp.
+   - Có khoá token đăng nhập (dạng `*token*` / `*auth*` / `*session*`) → **session hết
+     hạn thật**.
+   - Không có khoá token nào (chỉ khoá cấu hình của app) → **profile trống**, seed lại
+     bao nhiêu lần cũng vô ích cho tới khi sửa cấu hình. Kết thúc chặng, báo người
+     dùng, đừng lặp.
+
+   *TODO: chốt tên khoá token thật của app Scientec. App giữ session bằng cookie thay
+   vì `localStorage` thì probe này luôn rỗng — khi đó coi như session hết hạn thật.*
 
 3. **Session hết hạn thật → KẾT THÚC CHẶNG.** Báo người dùng đúng hai câu:
 
-   > Session hết hạn ở case <n>/<tổng>. Thoát Claude Code rồi chạy lại `/qa-run <TICKET>`
-   > — cổng 6 sẽ tự đăng nhập lại và tiếp tục từ case <n>, không phải chạy lại từ đầu.
+   > Session hết hạn ở case <n>/<tổng>. Thoát Claude Code rồi chạy lại `/qa-run <ID>`
+   > — cổng 5 sẽ tự đăng nhập lại và tiếp tục từ case <n>, không phải chạy lại từ đầu.
 
-   Không bảo họ tự chạy script: `/qa-run` làm việc đó ở cổng 6 (nhánh `FREE`).
+   Không bảo họ tự chạy script: `/qa-run` làm việc đó ở cổng 5 (nhánh `FREE`).
    Không tự đăng nhập bằng MCP: `browser_type` với mật khẩu lộ nguyên văn trong
    transcript. Và không tự chạy script lúc này: MCP đang giữ lock trên thư mục
    profile, script sẽ không mở được.

@@ -41,7 +41,7 @@ pick() {
     echo "$QA_PYTHON"; return 0
   fi
   # 2b. venv cũ ở .qa/.venv — một số repo đã dựng trước khi có quy ước .claude/.venv.
-  #     Nhận để không bắt dựng lại, nhưng .qa/ là thư mục KẾT QUẢ theo ticket: dọn .qa/
+  #     Nhận để không bắt dựng lại, nhưng .qa/ là thư mục KẾT QUẢ theo feature ID: dọn .qa/
   #     là mất venv. Nên chuyển sang .claude/.venv khi tiện.
   if [ -x "$ROOT/.qa/.venv/bin/python" ] && "$ROOT/.qa/.venv/bin/python" -c "import openpyxl" 2>/dev/null; then
     echo "$ROOT/.qa/.venv/bin/python"; return 0

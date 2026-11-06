@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# qa-log.sh — In tiến trình ra màn hình VÀ ghi vào .qa/<ticket>/progress.log
+# qa-log.sh — In tiến trình ra màn hình VÀ ghi vào .qa/<ID>/progress.log
 #
-#   bash .claude/scripts/qa-log.sh <ticket> <chặng> <bước>/<tổng> "<đang làm gì>"
+#   bash .claude/scripts/qa-log.sh <feature-ID> <chặng> <bước>/<tổng> "<đang làm gì>"
 #
 # Ví dụ:
-#   bash .claude/scripts/qa-log.sh TLM-2899 qa-analyze 2/6 "lọc git diff theo ticket"
-#   -> [14:32:05 +18s] TLM-2899 · qa-analyze · 2/6 · lọc git diff theo ticket
+#   bash .claude/scripts/qa-log.sh INV-001 qa-analyze 2/4 "đọc spec, tách AC"
+#   -> [14:32:05 +18s] INV-001 · qa-analyze · 2/4 · đọc spec, tách AC
 #
 # Vì sao cần: subagent chạy kín, người dùng ngồi nhìn màn hình đứng yên vài phút.
 # File log là kênh chắc chắn — mở terminal thứ hai và theo dõi:
 #
-#   tail -f .qa/TLM-2899/progress.log
+#   tail -f .qa/INV-001/progress.log
 #
 # Log còn lại sau khi chạy xong, nên dùng được để truy lại chặng nào chậm, chặng nào
 # dừng giữa chừng.
@@ -33,9 +33,9 @@ NOW=$(date +%s)
 # Bước đầu của một chặng thì reset mốc thời gian, để "+Ns" là thời gian của chặng
 # này chứ không cộng dồn từ lần chạy trước.
 #
-# NHƯNG: /qa-analyze chạy spec-analyst và code-analyst SONG SONG, cả hai đều log
-# "1/3". Reset vô điều kiện thì agent này xoá mốc của agent kia và cột +Ns vô nghĩa
-# suốt chặng. Chỉ reset khi mốc đã cũ (>60s) — tức là một lần chạy mới, không phải
+# NHƯNG: có chặng chạy hai agent SONG SONG (VD /qa-retro gọi hai bản retro-analyst),
+# cả hai đều log "1/N". Reset vô điều kiện thì agent này xoá mốc của agent kia và cột
+# +Ns vô nghĩa suốt chặng. Chỉ reset khi mốc đã cũ (>60s) — tức là một lần chạy mới, không phải
 # agent thứ hai của cùng một lần chạy.
 FRESH=0
 if [ -f "$STAMP_FILE" ]; then

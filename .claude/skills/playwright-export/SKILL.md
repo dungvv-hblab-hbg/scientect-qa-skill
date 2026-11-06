@@ -33,12 +33,12 @@ hành vi luồng do agent thực thi trước khi gọi skill.
 | TC ID + Expected Result | file test case Excel | Hỏi. Không viết test không gắn TC ID |
 | Test data cho case cần dữ liệu đặc thù | người dùng cung cấp | Ghi `test.skip` kèm lý do, hoặc báo để đánh `[MANUAL]`. **Không bịa data** |
 | Đường dẫn project + `Trạng thái` | `bash .claude/scripts/qa-config.sh playwright` | `CHƯA CÓ` → báo chạy `/qa-setup`. `KHÔNG DÙNG` → không export gì |
-| Ticket ID (để đặt tên file spec) | khối đầu vào của command | Hỏi. Tên file spec chính là mã ticket; thiếu nó thì lần sau không tra lại được |
+| Feature ID (để đặt tên file spec) | khối đầu vào của command | Hỏi. Tên file spec chính là feature ID; thiếu nó thì lần sau không tra lại được |
 
 ## Vị trí trong quy trình 2 phase
 
 - **Phase 1 (KHÔNG thuộc skill này):** agent dùng MCP Playwright mở
-  dashboard-stage (cửa sổ hiện lên, session giữ ở profile riêng), dò element, chạy thao tác theo test
+  staging `BASE_URL` (cửa sổ hiện lên, session giữ ở profile riêng), dò element, chạy thao tác theo test
   case. Đây là HÀNH ĐỘNG có phán đoán → thuộc agent.
 - **Phase 2 (skill này):** lấy thao tác đã biết từ Phase 1, viết thành file `.ts`
   đúng khuôn để tái dùng. Đây là KIẾN THỨC về convention code → skill.
@@ -48,64 +48,64 @@ gì) và xuất code; nó không tự mở trình duyệt hay dò selector.
 
 ## Convention bắt buộc
 
-Các lệnh dưới viết `telemax-e2e` làm ví dụ. Thư mục thật đọc ở mục Playwright của
-`qa-config` — repo scaffold mới thường là `e2e/`.
+Các lệnh dưới viết `scientec-e2e` (thư mục mặc định). Thư mục thật đọc ở mục
+Playwright của `qa-config`.
 
 ### Định danh — convention BẮT BUỘC, không phải trang trí
 
 Convention này là cách `test-runner` **tìm lại spec đã có** ở lần chạy sau. Sai một
 ký tự là không tìm thấy, và nó sẽ dò lại toàn bộ bằng MCP như chưa từng export.
 
-**MỘT FILE CHO MỘT TICKET.** Tên file là mã ticket:
+**MỘT FILE CHO MỘT TÍNH NĂNG.** Tên file là feature ID:
 
 ```
-tests/TLM-2899.spec.ts
+tests/INV-001.spec.ts
 ```
 
-Toàn bộ test case UI của ticket nằm trong file này, kể cả khi ticket đụng nhiều màn
-hình. Không tách thành `vehicle-detail.spec.ts`, `vehicle-list.spec.ts`... — tách nhỏ
-thì chạy lại cả bộ của một ticket phải nhớ mấy file, còn gom một file thì:
+Toàn bộ test case UI của tính năng nằm trong file này, kể cả khi tính năng đụng nhiều màn
+hình. Không tách thành `invoice-detail.spec.ts`, `invoice-list.spec.ts`... — tách nhỏ
+thì chạy lại cả bộ của một tính năng phải nhớ mấy file, còn gom một file thì:
 
 ```bash
-cd telemax-e2e && npx playwright test --project=chromium tests/TLM-2899.spec.ts     # chạy lại toàn bộ ticket, một lệnh
+cd scientec-e2e && npx playwright test --project=chromium tests/INV-001.spec.ts     # chạy lại toàn bộ tính năng, một lệnh
 ```
 
-File spec ánh xạ 1:1 với file test case Excel `.qa/TLM-2899/TCs_*.xlsx`. Cùng phạm vi,
+File spec ánh xạ 1:1 với file test case Excel `.qa/INV-001/TCs_*.xlsx`. Cùng phạm vi,
 cùng bộ TC ID, cùng vòng đời.
 
 **Describe block gom theo màn hình**, nhiều màn hình thì nhiều describe trong cùng file:
 
 ```ts
-test.describe('Vehicle Detail', () => {
-  test('TC-A-001 — mở trang chi tiết từ danh sách Devices', async ({ page }) => {
+test.describe('Invoice Detail', () => {
+  test('TC-A-001 — mở trang chi tiết từ danh sách Invoices', async ({ page }) => {
 ```
 
-Tên describe đặt đúng tên màn hình và **giữ nhất quán giữa các ticket** — đây là cách
-chạy regression theo màn hình xuyên nhiều ticket khi cần:
+Tên describe đặt đúng tên màn hình và **giữ nhất quán giữa các tính năng** — đây là cách
+chạy regression theo màn hình xuyên nhiều tính năng khi cần:
 
 ```bash
-cd telemax-e2e && npx playwright test --project=chromium -g "Vehicle Detail"        # mọi ticket từng test màn hình này
+cd scientec-e2e && npx playwright test --project=chromium -g "Invoice Detail"        # mọi tính năng từng test màn hình này
 ```
 
 **Tiêu đề test:** `TC-Y-NNN — <mô tả ngắn>`, đúng TC ID trong Excel. Dấu phân cách là
 ` — ` (space, gạch dài, space) — đừng đổi sang `-` hay `:`, chuỗi này là thứ được grep.
 
-TC ID chỉ duy nhất **trong một ticket**, nên khi chạy theo TC ID **luôn phải kèm đường
+TC ID chỉ duy nhất **trong một tính năng**, nên khi chạy theo TC ID **luôn phải kèm đường
 dẫn file**, đừng bao giờ chạy `-g "TC-A-001"` trần:
 
 ```bash
-cd telemax-e2e && npx playwright test --project=chromium tests/TLM-2899.spec.ts -g "TC-A-001"
+cd scientec-e2e && npx playwright test --project=chromium tests/INV-001.spec.ts -g "TC-A-001"
 ```
 
 **Header comment** ở đầu file:
 
 ```ts
-// TLM-2899 — Vehicle Detail
-// Test case: .qa/TLM-2899/TCs_Vehicle-Detail_v1.0.xlsx
-// Màn hình: Vehicle Detail, Devices List
+// INV-001 — Invoice Detail
+// Test case: .qa/INV-001/TCs_Invoice-Detail_v1.0.xlsx
+// Màn hình: Invoice Detail, Invoice List
 ```
 
-**Không duy trì file index** ánh xạ TC ID → spec. Tên file đã là mã ticket, tra bằng
+**Không duy trì file index** ánh xạ TC ID → spec. Tên file đã là feature ID, tra bằng
 đường dẫn là đủ; index thì sẽ lệch ngay lần đầu ai đó sửa tay.
 
 ### Tag `@prod-safe` — quyết định case nào chạy được sau khi deploy
@@ -134,7 +134,7 @@ sau; gắn thừa thì đã sửa dữ liệu thật rồi.
 1. `getByRole` (button, heading, row, link...) — ổn định nhất, gần cách người
    dùng nhìn.
 2. `getByLabel` / `getByPlaceholder` — cho field form.
-3. `getByTestId` — nếu Telemax dashboard có `data-testid`.
+3. `getByTestId` — nếu app có `data-testid`.
 4. `getByText` — khi nội dung là dấu hiệu chính (VD text của fault card).
 5. CSS/XPath — chỉ khi hết cách; đánh dấu `// TODO: selector tạm, cần data-testid`.
 
@@ -147,7 +147,7 @@ hảo tuyệt đối (theo chủ trương của team). Selector tạm chấp nh�
 Danh sách ưu tiên trên đúng cho control **chuẩn**. Năm lớp dưới đây là chỗ nó không cứu
 được: control tự chế và `<select>` thật. Đây là **lớp bẫy**, không phải danh sách
 selector của một app — mỗi repo có tên class khác nhau, nhưng cơ chế hỏng thì giống hệt.
-Ví dụ trong ngoặc lấy từ dashboard Telemax (biên bản đầy đủ:
+Ví dụ trong ngoặc lấy từ một dự án trước (biên bản đầy đủ:
 [docs/DEAD-ENDS.md](../../../docs/DEAD-ENDS.md) §4).
 
 1. **Dropdown tự chế giữ MỌI option trong DOM kể cả khi đóng** → selector theo text khớp
@@ -159,7 +159,7 @@ Ví dụ trong ngoặc lấy từ dashboard Telemax (biên bản đầy đủ:
    *(Ví dụ: `span.field-searchable-select__selected-display`, không phải `div`.)*
 3. **`hasText` / `getByText` là so chuỗi CON.** Tên option này là tiền tố của option kia
    thì khớp nhầm. So bằng `{ exact: true }` hoặc `^...$`.
-   *(Ví dụ: `'Idle Report'` khớp cả `'Fleet Idle Report'`.)*
+   *(Ví dụ: `'Revenue Report'` khớp cả `'Monthly Revenue Report'`.)*
 4. **`<select>` thật: `selectOption('<chuỗi>')` so theo VALUE, không phải label.** Dùng
    `selectOption({ label })`, và ghi value đọc được ở Phase 1 vào comment.
    *(Ví dụ: value `LastWeek` trong khi label là "Last 7 days"; 4/6 option lệch.)*
@@ -167,15 +167,15 @@ Ví dụ trong ngoặc lấy từ dashboard Telemax (biên bản đầy đủ:
    đổi bộ field bắt buộc. Thiếu một ô bắt buộc → form không submit → trang đứng ở trạng
    thái rỗng → case đỏ **trông như** mất block dữ liệu. Ở Phase 1, với **mỗi biến thể**
    ghi lại ô nào bắt buộc.
-   *(Ví dụ: Geofence Report bắt chọn ô Geofence, không dùng Vehicle — validation vẫn nổ
+   *(Ví dụ: một report bắt chọn ô Region, không dùng Customer — validation vẫn nổ
    dù option đầu đã `[selected]`.)*
 
 Gặp lớp bẫy mới ở repo khác thì **bổ sung vào danh sách này**, mô tả theo cơ chế chứ
 đừng theo tên class.
 
 ### Truy vết ngược về test case Excel
-- File đặt tên đúng mã ticket; mỗi `test()` mở đầu bằng `TC-Y-NNN — ` đúng TC ID trong
-  Excel. Ticket + TC ID cùng nhau là khoá truy vết.
+- File đặt tên đúng feature ID; mỗi `test()` mở đầu bằng `TC-Y-NNN — ` đúng TC ID trong
+  Excel. Feature ID + TC ID cùng nhau là khoá truy vết.
 - Trong thân test, ghi comment trích **Expected Result** từ Excel, rồi viết
   assertion phản ánh đúng expected đó. Assertion phải kiểm được điều Expected nói,
   không chỉ "trang mở ra".
@@ -192,7 +192,7 @@ Bỏ qua:
 - API (thuộc skill `postman-api-test`, không phải Playwright).
 - Business rule thuần server-side không quan sát được qua UI.
 
-Case cần điều kiện dữ liệu đặc biệt (VD "xe đang có fault") → vẫn export được
+Case cần điều kiện dữ liệu đặc biệt (VD "khách hàng có invoice quá hạn") → vẫn export được
 nhưng ghi rõ cần test data phù hợp, hoặc `test.skip` kèm lý do.
 
 **Case kiểm nội dung file export (.xlsx / .csv) LÀ export được, không phải manual:**
@@ -204,7 +204,7 @@ await dl.saveAs(path);
 
 rồi assert trên nội dung file. PDF thì dùng `pdftotext` nếu máy có; không có mới
 `[MANUAL]`, và ghi đúng lý do đó ("máy chưa có pdftotext"), đừng ghi "không kiểm được
-bằng automation" — câu đó không đúng và nó bỏ rơi những case rủi ro cao nhất của ticket.
+bằng automation" — câu đó không đúng và nó bỏ rơi những case rủi ro cao nhất của tính năng.
 
 Case thật sự không tự động hoá được thì **không export**, và báo lại cho
 `test-runner` để nó ghi `Blocked` + Note `[MANUAL] <lý do>` vào Excel — **kèm đường nào
@@ -215,7 +215,7 @@ case đó là để nó nằm `Not Run` mãi và làm sai `% Executed` ở Summa
 
 Đọc `assets/example.spec.ts` làm mẫu tham chiếu. Khung chuẩn:
 
-1. Header comment: tên màn hình, nguồn ticket, tên file Excel.
+1. Header comment: tên màn hình, feature ID, tên file Excel.
 2. `test.describe('<Màn hình>', ...)` gom nhóm.
 3. `test.beforeEach` cho điều hướng chung (mở đúng trang) nếu các test dùng chung
    điểm vào.
@@ -229,8 +229,8 @@ Mỗi dòng Expected trong Excel nên thành một assertion.
 pass cả khi phần tử rỗng, không tồn tại, hoặc trang lỗi 500 — nó không chứng minh
 được gì. Chỉ dùng phủ định khi Expected thật sự nói về sự vắng mặt.
 
-- "Tiêu đề là tên xe, không phải biển số"
-  → `await expect(heading).toHaveText(vehicle.name)` — assert cái ĐÚNG phải hiện,
+- "Tiêu đề là tên khách hàng, không phải mã khách hàng"
+  → `await expect(heading).toHaveText(customer.name)` — assert cái ĐÚNG phải hiện,
     đừng chỉ assert cái sai không hiện.
 - "Không có tab bar" (Expected nói về sự vắng mặt → phủ định là đúng)
   → `await expect(page.getByRole('tablist')).toHaveCount(0)`.
@@ -246,21 +246,21 @@ Dữ liệu đến từ API sau khi khung trang đã render, nên sau `goto` kh�
 ngay. Cách chờ đúng là để `expect()` tự retry vào phần tử chứa **dữ liệu thật**:
 
 ```ts
-await page.goto('/devices');
+await page.goto('/invoices');
 // expect() tự chờ tới khi dòng dữ liệu xuất hiện — không cần chờ thủ công
-await expect(page.getByRole('row').filter({ hasText: VEHICLE.rego })).toBeVisible();
+await expect(page.getByRole('row').filter({ hasText: INVOICE.number })).toBeVisible();
 ```
 
 - **KHÔNG `page.waitForTimeout(...)`.** Chờ cứng vừa chậm khi mạng nhanh vừa thiếu khi
   mạng chậm — nguồn flaky số một.
-- **KHÔNG `waitUntil: 'networkidle'`** trên màn hình realtime: dashboard giữ kết nối
-  stream nên network không bao giờ idle, chờ kiểu đó là chờ tới hết timeout.
+- **KHÔNG `waitUntil: 'networkidle'`** trên màn hình realtime: app giữ kết nối
+  stream/polling nên network không bao giờ idle, chờ kiểu đó là chờ tới hết timeout.
 - Màn hình tải chậm thật thì nới timeout của chính assertion đó
   (`{ timeout: 30_000 }`), đừng thêm sleep phía trước.
 
 ## Bằng chứng khi fail (cần cho bug)
 
-`clickup-bug-format` yêu cầu Actual Result cụ thể — message thật, status thật.
+`bug-report-format` yêu cầu Actual Result cụ thể — message thật, status thật.
 Muốn có thì `playwright.config.ts` phải bật artifact:
 
 ```ts
@@ -285,7 +285,7 @@ sau. Chạy verify, đây là feedback loop bắt buộc.
 lần export:
 
 ```bash
-cd telemax-e2e && npx playwright test --project=chromium tests/TLM-XXXX.spec.ts
+cd scientec-e2e && npx playwright test --project=chromium tests/<ID>.spec.ts
 ```
 
 Mỗi lần gọi `npx playwright test --project=chromium` là một lần khởi động Playwright (~5–10 giây) cộng
@@ -293,16 +293,16 @@ một lần dựng browser. 20 case export mà verify từng cái là 20 lần k
 phút thuần chờ, không thêm thông tin gì so với chạy một lượt.
 
 Chỉ khi có case lệch mới quay lại chạy riêng nó (**luôn kèm đường dẫn file** — TC ID
-chỉ duy nhất trong một ticket):
+chỉ duy nhất trong một tính năng):
 
 ```bash
-cd telemax-e2e && npx playwright test --project=chromium tests/TLM-XXXX.spec.ts -g "TC-Y-NNN"
+cd scientec-e2e && npx playwright test --project=chromium tests/<ID>.spec.ts -g "TC-Y-NNN"
 ```
 
 **Hơn NỬA file fail ở lần verify đầu → nghi MÔI TRƯỜNG trước, đừng sửa selector:**
 
 ```bash
-cd <project e2e> && npx playwright test --project=chromium tests/TLM-XXXX.spec.ts --workers=1
+cd <project e2e> && npx playwright test --project=chromium tests/<ID>.spec.ts --workers=1
 ```
 
 Đỏ hàng loạt ở `beforeEach`, cùng một element, snapshot chỉ có `- img` = **SPA boot song
@@ -328,14 +328,14 @@ Sửa 2 lần vẫn không khớp thì dừng, giữ kết quả Phase 1, và gh
 
 ## Tự kiểm trước khi giao file .ts
 
-- [ ] File tên đúng mã ticket: `tests/TLM-XXXX.spec.ts`, một file cho cả ticket
-- [ ] Ticket đụng nhiều màn hình → nhiều `describe` trong cùng file, KHÔNG tách file
-- [ ] Tên describe đúng tên màn hình và nhất quán với ticket trước (để chạy regression theo màn hình)
+- [ ] File tên đúng feature ID: `tests/<ID>.spec.ts`, một file cho cả tính năng
+- [ ] Tính năng đụng nhiều màn hình → nhiều `describe` trong cùng file, KHÔNG tách file
+- [ ] Tên describe đúng tên màn hình và nhất quán với tính năng trước (để chạy regression theo màn hình)
 - [ ] KHÔNG có bước login / credential trong spec
 - [ ] Mỗi test() có tiêu đề đúng dạng `TC-Y-NNN — <mô tả>`, đúng dấu ` — `
 - [ ] Case chỉ-xem đã gắn `{ tag: '@prod-safe' }`; case có ghi dữ liệu thì KHÔNG gắn
-- [ ] Header comment có ticket, file Excel, danh sách màn hình
-- [ ] **Đã chạy MỘT lệnh `npx playwright test --project=chromium tests/TLM-XXXX.spec.ts` cho cả file và kết quả khớp Phase 1**
+- [ ] Header comment có feature ID, file Excel, danh sách màn hình
+- [ ] **Đã chạy MỘT lệnh `npx playwright test --project=chromium tests/<ID>.spec.ts` cho cả file và kết quả khớp Phase 1**
 - [ ] Có comment Expected + assertion phản ánh đúng Expected đó
 - [ ] Locator theo thứ tự ưu tiên; selector tạm có đánh dấu TODO
 - [ ] Assertion là DƯƠNG khi Expected nói về sự hiện diện; phủ định chỉ khi Expected nói về sự vắng mặt

@@ -1,9 +1,15 @@
 ---
-description: Phân tích ticket Telemax -> file test-analysis checklist để bạn review
-argument-hint: TLM-XXXX
+description: Phân tích file spec Markdown của một tính năng Scientec -> file test-analysis checklist để bạn review
+argument-hint: <spec.md> [ID]
 ---
 
-Chạy chặng 1 của quy trình QA cho ticket **$1**.
+Chạy chặng 1 của quy trình QA: đọc spec **$1** và dựng checklist cho tính năng **$2**
+(rỗng thì lấy tên file spec).
+
+```
+spec .md → checklist → test case Excel → chạy test (UI/API) → bug report (Excel + MD) → verify production
+           ▲ chặng này
+```
 
 ## Cổng đầu vào — làm TRƯỚC khi gọi agent
 
@@ -14,129 +20,112 @@ rõ mặc định đề xuất. Không bao giờ hỏi mật khẩu/token qua ch
 
 Chờ tôi trả lời xong mới gọi agent. Đừng đoán thay tôi.
 
-1. **Ticket ID** — `$1` rỗng thì hỏi. Nếu tôi không đưa mà bạn suy từ tên nhánh
-   (`git rev-parse --abbrev-ref HEAD | grep -oE 'TLM-[0-9]+'`) thì **hỏi xác nhận
-   đúng ticket đó không**, đừng dùng thẳng.
+1. **File spec** *(Chặn)* — `$1` rỗng thì hỏi đường dẫn. Có thì kiểm:
+   - file tồn tại (`test -f "$1"`) — không có thì báo đúng đường dẫn đã thử, hỏi lại;
+   - đuôi `.md` — khác thì dừng: harness chỉ nhận spec Markdown. Spec đang ở dạng
+     khác (Word, PDF, Confluence) thì tôi tự chuyển sang `.md` rồi chạy lại.
 
-   **Nếu tôi dán thẳng nội dung spec vào chat thay vì đưa mã ticket** — **DỪNG, chưa
-   phân tích gì cả**, và bảo tôi tạo ticket trước:
+   **Nếu tôi dán thẳng nội dung spec vào chat thay vì đưa đường dẫn** — **chưa phân
+   tích gì cả.** Đề nghị lưu nó thành file trước:
 
-   > "Nội dung này chưa có ticket. Tạo ticket ClickUp trước rồi quay lại đưa tôi mã
-   > nhé — checklist, test case và bug sau này đều cần link ngược về ticket, còn nội
-   > dung dán trong chat thì ba tháng nữa không ai mở lại được.
-   >
-   > Bạn tự tạo rồi chạy lại `/qa-analyze TLM-XXXX`, hoặc để tôi tạo giúp từ nội dung
-   > bạn vừa dán — tôi dựng nội dung task đưa bạn duyệt trước, tạo xong là chạy tiếp
-   > luôn với mã mới."
+   > "Spec này chưa nằm trong file nào. Tôi lưu nó thành `specs/<ID>.md` rồi phân tích
+   > từ file đó nhé — checklist, test case và bug sau này đều trỏ ngược về spec, còn
+   > nội dung dán trong chat thì ba tháng nữa không ai mở lại được."
 
-   - Tôi chọn để bạn tạo giúp → dựng nội dung task (tiêu đề, mô tả, AC tách thành
-     danh sách), **đưa tôi duyệt rồi mới tạo** qua `ClickUp:clickup_create_task`.
-     Không tự tạo. Tạo xong lấy mã trả về, chạy tiếp chặng phân tích luôn, không bắt
-     tôi gõ lại lệnh.
-   - Tôi chọn tự tạo → dừng ở đây, không phân tích. Tôi sẽ quay lại với mã ticket.
+   - Hỏi luôn ID muốn dùng (đề xuất một ID ngắn từ tên tính năng).
+   - Cho tôi xem **nguyên văn** nội dung sẽ ghi vào `specs/<ID>.md`, **chờ tôi OK**
+     rồi mới ghi. Không sửa câu chữ của spec — chỉ thêm tiêu đề `# <ID> — <tên tính năng>`
+     nếu chưa có.
+   - Ghi xong thì chạy tiếp chặng phân tích với file vừa tạo, không bắt tôi gõ lại lệnh.
+   - Tôi không muốn lưu → dừng. **Không phân tích nội dung chat trần**: không có file
+     thì không có bản gốc để đối chiếu lại.
 
-   **Chỉ khi tôi đã nghe nhắc mà vẫn nói rõ là cứ chạy không cần ticket** thì mới đi
-   tiếp: dùng ID tạm `TMP-<slug-tính-năng>` cho thư mục `.qa/` **và thay cho mọi `$1`
-   ở phần dưới** (`$1` rỗng làm `qa-state.sh` exit 2), mọi dòng checklist
-   lấy từ nội dung dán gắn nhãn `[Chat]`, mục A ghi rõ chưa có ticket. Nêu một lần
-   ba thứ sẽ mất — không đối chiếu lại được spec gốc, bug không link ngược về ticket,
-   người khác không mở lại được nguồn — rồi tôn trọng quyết định của tôi, đừng nhắc
-   lại ở các chặng sau. Đây là lối thoát khi tôi cố ý chọn, không phải một phương án
-   ngang hàng để chào.
-2. **Nhánh base để so diff** — mặc định **`stage`** (nhánh build ra dashboard-stage,
-   `bash .claude/scripts/qa-config.sh ticket`). Không phải `dev`, không phải `master`. Nêu ra để tôi
-   xác nhận hoặc đổi.
+2. **Feature ID** *(Xác nhận)* — mặc định = tên file spec bỏ đuôi `.md`
+   (`specs/INV-001.md` → `INV-001`); `$2` có thì dùng `$2`. ID phải khớp
+   `[A-Za-z0-9_-]+` — có dấu cách hay ký tự khác thì đề xuất bản đã thay bằng `-`.
+   Nêu ID sẽ dùng, chờ tôi gật. ID là tên thư mục `.qa/<ID>/` và là khoá của mọi
+   chặng sau, nên đổi về sau rất tốn.
 
-   Kiểm luôn **ticket đã có commit trên `origin/stage` chưa** (lệnh ở Bước 0 của skill
-   `git-diff-scope`) rồi nêu cho tôi cách diff sẽ dùng: **đã merge → diff theo commit
-   merge (`git diff <sha>^ <sha>`)**; **chưa merge → diff nhánh ba chấm**. **Đừng mặc
-   định `stage...feature`** — ticket đã merge thì nhánh feature luôn cũ hơn `stage` và
-   diff đó lôi vào công việc của người khác, im lặng, không có tín hiệu nào báo.
-3. **Không tìm thấy commit/nhánh của ticket** — hỏi tôi: code chưa xong, hay ticket
-   này không đụng code? Câu trả lời quyết định checklist có mục G hay không.
-**Không hỏi về Figma ở đây.** Chỉ agent mới đọc ticket, nên hỏi "ticket có link
-Figma không" ở cổng này là hỏi mù — hoặc tôi phải tự mở ClickUp trả lời, hoặc bạn
-phải gọi `clickup_get_task` để rồi agent gọi lại lần nữa và giữ hai bản nội dung
-ticket trong context. Agent tự xử: không thấy Figma thì ghi `[Cần hỏi]` ở mục A và
-nêu trong khối "còn treo". Tôi có sẵn link ở tay thì tự đưa, không cần được hỏi.
+   **Từ đây trở xuống, `<ID>` là ID đã được xác nhận** — không phải `$1` (đường dẫn
+   spec). Gọi `qa-state.sh` với `$1` là ghi state vào một "tính năng" tên đường dẫn.
 
-Mọi thứ đọc được từ ticket/git thì dùng thẳng, không cần hỏi.
+3. **`.qa/<ID>/` đã có checklist** *(Xác nhận)* — `checklist_<ID>.md` tồn tại thì hỏi:
+   ghi đè (mất phản hồi review đã viết) hay dừng để chạy `/qa-apply-feedback <ID>`.
+   Mặc định đề xuất: **dừng**.
+
+**Không hỏi về Figma ở đây.** Chỉ agent mới đọc spec, nên hỏi "spec có link Figma
+không" ở cổng này là hỏi mù. Agent tự xử: có link mà Figma MCP sẵn sàng thì đọc,
+không thì ghi `[Cần hỏi]` ở mục A và nêu trong khối "còn treo". Tôi có sẵn link ở tay
+thì tự đưa, không cần được hỏi.
+
+## Chụp lại spec vào `.qa/<ID>/`
+
+Sau khi tôi xác nhận, **chạy thẳng, không subagent**:
+
+```bash
+mkdir -p .qa/<ID> && cp "<đường dẫn spec>" .qa/<ID>/spec.md
+```
+
+Vì sao chụp: spec gốc trong `specs/` còn bị sửa tiếp. Mọi chặng sau (và `/qa-retro`)
+đọc `.qa/<ID>/spec.md` — đúng phiên bản đã dùng để dựng checklist — chứ không đọc file
+gốc đang trôi. Chạy lại `/qa-analyze` thì bản chụp được ghi đè bằng bản mới nhất; nói
+với tôi một dòng nếu nội dung khác bản cũ.
 
 Trước khi gọi agent, nói với tôi một dòng: muốn theo dõi tiến trình thì mở terminal
-thứ hai và chạy `tail -f .qa/$1/progress.log`.
+thứ hai và chạy `tail -f .qa/<ID>/progress.log`.
 
-## Chạy ba chặng: hai agent SONG SONG rồi một agent tổng hợp
+## Gọi agent `test-analyst`
+
+Một agent, đọc spec và dựng checklist:
 
 ```
-spec-analyst  (chỉ spec, CẤM đọc code)  ─┐
-                                         ├─►  test-analyst  ─►  checklist
-code-analyst  (chỉ code + git diff)     ─┘     (tổng hợp)
+FEATURE_ID: <ID>
+SPEC: .qa/<ID>/spec.md
+FIGMA: (link tôi tự đưa, hoặc "không có" — agent vẫn tự tìm link trong spec)
 ```
 
-**Vì sao tách:** một agent đọc cả spec lẫn code rồi dựng checklist sẽ mô tả *code
-đang làm gì* thay vì *spec đòi gì* — và bug loại "code khác spec" trở nên vô hình vì
-test được suy ra từ chính cái sai. Tách ra thì hai vế độc lập, và **chỗ chúng lệch
-nhau** thành mục **D6** của checklist: sản phẩm giá trị nhất của chặng này.
+Agent **chỉ đọc spec** (và Figma nếu có). Không có code, không có git, không có hệ
+thống quản lý ticket nào trong chặng này — spec là nguồn duy nhất của "hệ thống phải
+làm gì".
 
-Đắt hơn một agent, và đó là chủ ý — đổi token lấy test có nghĩa.
+## Cổng giữa — spec không đủ dữ kiện để dựng checklist
 
-**Gọi hai agent đầu trong CÙNG MỘT message** để chúng chạy song song. Đừng chờ
-`spec-analyst` xong mới gọi `code-analyst` — chúng không phụ thuộc nhau (một cái chỉ
-cần ticket ID, cái kia chỉ cần ticket ID + nhánh base).
+`test-analyst` báo **`SPEC_INSUFFICIENT: có`** ở dòng đầu báo cáo → **DỪNG cả chặng.**
+Không có checklist nào được ghi.
 
-`spec-analyst`:
-```
-TICKET: $1
-FIGMA: (link tôi đưa, hoặc "không có")
-```
+Báo lại cho tôi:
+1. Ba con số agent đếm được (số AC · số từ mô tả · có Figma không)
+2. **Danh sách chỗ thiếu** agent liệt kê — mỗi chỗ một dòng, viết thành câu hỏi cụ
+   thể tôi mang đi hỏi BA/khách được
+3. Lời mời: bổ sung vào file spec gốc rồi chạy lại `/qa-analyze <spec.md> <ID>`
 
-`code-analyst`:
-```
-TICKET: $1
-BASE_BRANCH: (giá trị tôi đã xác nhận)
-HAS_DIFF: (có / không — kèm lý do tôi đã nói)
-```
+**Không dựng checklist từ suy đoán, không đi dò UI để "đoán ngược" spec.** Spec
+rỗng ruột mà vẫn ra checklist thì checklist trông như thật nhưng không có gì bảo
+chứng — test sinh ra từ đó không bao giờ đỏ ở đúng chỗ cần đỏ. Việc bổ sung spec là
+của người viết spec, không phải của harness.
 
-Cả hai xong → gọi `test-analyst`:
-```
-TICKET: $1
-SPEC_ANALYSIS: .qa/$1/analysis-spec.md
-CODE_ANALYSIS: .qa/$1/analysis-code.md   (ghi "không có" nếu code-analyst báo không có diff và không đọc được gì)
-```
+## Báo lại sau khi agent xong
 
-`spec-analyst` **DỪNG** (không đọc được ticket) → dừng cả chặng, đừng gọi tiếp: không
-có yêu cầu thì không có gì để test. `code-analyst` dừng hoặc không có diff → **vẫn
-gọi** `test-analyst`, nó biết cách bỏ mục G và D6.
-
-`spec-analyst` báo **`SPEC_INSUFFICIENT: có`** → **đừng gọi `test-analyst`**, sang cổng
-ngay dưới đây.
-
-## Cổng giữa — ticket không đủ dữ kiện để dựng checklist
-
-Ticket chỉ có tiêu đề ("Test Order Module"), hoặc tính năng làm từ lâu không có ticket
-dev nào. Đi tiếp như bình thường thì `test-analyst` vẫn dựng ra một checklist trông như
-thật, nhưng mọi dòng đều suy từ chính code — test sinh ra từ đó **không bao giờ đỏ ở
-đúng chỗ cần đỏ**. Dừng ở đây và để tôi chọn.
-
-**Đọc `.claude/agents/reference/no-spec-mode.md`, mục A** rồi làm đúng theo: dựng danh
-sách phạm vi từ `analysis-code.md` đã có, hỏi tôi MỘT lượt gồm cả phạm vi lẫn ba lựa
-chọn, rồi gọi `ui-explorer` + `test-analyst` ở chế độ tương ứng. Đừng làm theo trí nhớ —
-file đó giữ nguyên văn câu hỏi, khuôn đầu vào của agent, và cách ghi state cho nhánh này.
+1. Đường dẫn checklist `.qa/<ID>/checklist_<ID>.md`
+2. Số mục, số AC, số câu hỏi độ tin **Thấp** ở mục F, số dòng mâu thuẫn ở **D5**
+3. D5 không rỗng thì nêu thẳng — đó là thứ người review cần nhìn trước tiên
+4. Khối tổng kết đầu vào của agent
+5. ▸ **DỪNG để review.** Mời tôi mở checklist, ghi phản hồi vào section "Phản hồi
+   review" rồi chạy `/qa-apply-feedback <ID>`; ổn rồi thì chạy `/qa-write-cases <ID>`
 
 ## Ghi trạng thái (bắt buộc — để `/qa-status` và resume dùng được)
 
 **Ngay trước khi gọi agent:**
 ```bash
-bash .claude/scripts/qa-state.sh set $1 analyze in_progress "bắt đầu phân tích"
+bash .claude/scripts/qa-state.sh set <ID> analyze in_progress "bắt đầu phân tích"
 ```
 
 **Ngay sau khi agent kết thúc**, kể cả khi hỏng — command vẫn sống sau agent, nên
 đây là chỗ duy nhất ghi được cả trường hợp thất bại:
 ```bash
-bash .claude/scripts/qa-state.sh set $1 analyze done   "<tóm tắt 1 dòng: bao nhiêu AC, bao nhiêu dòng D6>"
-bash .claude/scripts/qa-state.sh set $1 analyze failed "<lý do dừng>"
+bash .claude/scripts/qa-state.sh set <ID> analyze done   "<tóm tắt 1 dòng: bao nhiêu AC, bao nhiêu câu Thấp>"
+bash .claude/scripts/qa-state.sh set <ID> analyze failed "<lý do dừng — SPEC_INSUFFICIENT thì ghi rõ>"
 ```
-
 
 Journal này là **nhật ký, không phải nguồn chân lý** — artifact trên đĩa mới là sự
 thật. Đừng bỏ bước ghi: bỏ là `/qa-status` mù, và lần chạy sau không biết tiếp từ đâu.
